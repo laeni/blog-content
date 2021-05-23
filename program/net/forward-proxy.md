@@ -1,14 +1,14 @@
 ---
-title: '一条命令使用Nginx搭建正向代理服务器实现“FanQiang”'
+title: 基于Nginx搭建正向代理服务器实现科学上网
 description: '使用Nginx + ngx_http_proxy_connect_module 模块搭建支持https的正向代理服务器，以解决某些开发过程中很多国外文档网站被屏蔽的问题'
 author: 'Laeni'
-tags: Nginx, 正向代理, ngx_http_proxy_connect_module, FanQiang, VPN
+tags: Nginx, 正向代理, ngx_http_proxy_connect_module, FanQiang, VPN, 科学上网
 date: '2021-05-16'
-updated: '2021-05-16'
+updated: '2021-05-23'
 ---
 **注意：**
 
-- 一条命指的是脚本，可以直接在本文最末尾查看
+- 本文涉及的内容仅仅用于学习与交流,，切勿用于非法用途。
 - 本文会尽量详细的说明正向代理的搭建已经相关理论（个人理解），如有错误敬请谅解并欢迎指正（在评论未支持前可通过[关于博主](../../../about/self.html)中的邮箱进行反馈）。
 
 作为一个普通开发人员，访问国外网站是很常见的，比如[github](https://github.com)、[tailwindcss](https://tailwindcss.com)。这不，最近似乎是受到建党100周年的影响，凡是基于[Vercel](https://vercel.com/)的所有博客和文档站点统统无法访问，刚开始以为是Vercel本身挂了，但是后面发现被墙的可能性比较大，因为所有请求都拒绝连接且从大陆以外的地方访问不受影响。
