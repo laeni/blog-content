@@ -18,6 +18,18 @@ updated: '2021-05-16'
 
 ## 联系方式
 
-邮箱：**m@laeni.cn**
+邮箱：**[m@laeni.cn](mailto:m@laeni.cn)**
 
 微信：**vlaeni**
+
+
+<details>
+<summary>Show equivalent JSX</summary>
+
+```jsx
+<h1>
+  Hello, <em>world</em>!
+</h1>
+```
+
+</details>

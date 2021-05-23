@@ -50,15 +50,21 @@ https协议是建立在http的基础之上的，即在http的基础了加了非�
    }
    ```
 
+   可以输出默认配置
+
+   ```bash
+   $ cfssl print-defaults csr
+   ```
+
 2. 通过配置文件生成证书
 
    ```bash
    # 注意根据实际情况修改相关属性值并删除所有注释
    $ cfssl gencert \
-  -initca ca.json \  # 证书配置文件
+     -initca ca.json \  # 证书配置文件
      | cfssljson -bare ca # 将生成的内容保持到名为"ca.*"的文件中
    ```
-   
+
    以上命令会生成`ca.pem`（证书/公钥）、`ca-key.pem`（密匙/私钥）和`ca.csr`（暂无用处，可删除）。
 
 ### 通过根CA签发https证书
@@ -77,6 +83,12 @@ https协议是建立在http的基础之上的，即在http的基础了加了非�
        }
      }
    }
+   ```
+
+   可以输出默认配置
+
+   ```bash
+   $ cfssl print-defaults config
    ```
 
 2. 创建生成域名证书对应的配置文件`laeni.cn.json`(基本同根CA配置文件)
@@ -163,4 +175,4 @@ server {
 
 ---
 
-以上内容为本人的理解并结合测试得到的结果，如有错误敬请谅解并欢迎指正（在评论未支持前可通过[关于博主](../../../about/self.html)中的邮箱进行反馈）。
+以上内容为本人的理解并结合测试得到的结果，如有错误敬请谅解并欢迎指正（在评论未支持前可通过[关于博主](../../../about/self.html)中的[邮箱](mailto:m@laeni.cn)进行反馈）。
