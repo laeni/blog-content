@@ -5,17 +5,15 @@ tags: umijs, @umijs/plugin-dva, dva, react
 date: '2021-06-13'
 updated: '2021-06-14'
 ---
-## @umijs/plugin-dva
-
 dva 是一个基于 [redux](https://github.com/reduxjs/redux) 和 [redux-saga](https://github.com/redux-saga/redux-saga) 的数据流方案，为了简化开发体验，dva 额外内置了 [react-router](https://github.com/ReactTraining/react-router) 和 [fetch](https://github.com/github/fetch)。`@umijs/plugin-dva`目的是能在umi中快速集成dva。
 
-[官方文档](https://umijs.org/zh-CN/plugins/plugin-dva) [DvaJS](https://dvajs.com/)
+[@umijs/plugin-dva文档](https://umijs.org/zh-CN/plugins/plugin-dva) [DvaJS文档](https://dvajs.com/)
 
 ### 数据流向
 
 数据的改变发生通常是通过用户交互行为或者浏览器行为（如路由跳转等）触发的，当此类行为会改变数据的时候可以通过 `dispatch` 发起一个 action，如果是同步行为会直接通过 `Reducers` 改变 `State` ，如果是异步行为（副作用）会先触发 `Effects` 然后流向 `Reducers` 最终改变 `State`，所以在 dva 中，数据流向非常清晰简明，并且思路基本跟开源社区保持一致（也是来自于开源社区）。
 
-![img](https://zos.alipayobjects.com/rmsportal/PPrerEAKbIoDZYr.png)
+![img](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/web/umijs-plugin/dva.png)
 
 ### Model
 

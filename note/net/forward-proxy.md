@@ -162,5 +162,5 @@ docker run -d \
 
 以360安全浏览器（个人虽然是程序员，但对360浏览器情有独钟，原因有二：一是书签同步方便，不用担心书签丢失；二是window下360为双内核，曾经开发web时可以当做两个浏览器调试）为例，可以在扩展管理中安装“*Proxy SwitchyOmega*”插件的“*auto switch*”功能来解决自动选择代理问题，即只为需要代理的域名使用代理，其他的走“直连”就好。安装完成后该插件会提示怎么配置，仔细观看即可。下图为360浏览器中“*Proxy SwitchyOmega*”插件的部分配置，其他浏览器（如Chrome）一般也有类似插件。
 
-![SwitchyOmega](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/program/net/forward-proxy/SwitchyOmega.jpg)
+![SwitchyOmega](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/net/forward-proxy/SwitchyOmega.jpg)
 
