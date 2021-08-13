@@ -1,9 +1,9 @@
 ---
-title: '修改应用默认路径'
+title: '修改系统和常用应用的缓存路径到非系统分区'
 author: 'Laeni'
 tags: Linux, Windows, 默认路径, 缓存路径
 date: '2021-08-12'
-updated: '2021-08-12'
+updated: '2021-08-13'
 ---
 
 大部分应用程序都有缓存，而且一般都会将缓存数据放在当前用户的用户目录下，默认配置情况下将会导致系统分区数据越来越多，从而经常出现空间不够的情况。数据全部放在系统分区，在重装系统时也会越到数据备份的问题。所以一般情况下需要更改大部分软件的安装目录和缓存目录到非系统分区。
@@ -33,7 +33,7 @@ updated: '2021-08-12'
 
 ## Gradle
 
-设置系统环境变量`GRADLE_USER_HOME`即可全局修改。如：![img](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/sys/modify-app-default-path/1.png)
+设置系统环境变量`GRADLE_USER_HOME`即可全局修改。如：![img](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/sys/modify-default-path/1.png)
 
 ## Maven
 
@@ -68,7 +68,7 @@ Android studio除了是IDEA外，还需要修改Android相关缓存配置。
 
 1. 添加`ANDROID_SDK_HOME`环境变量，设置自己自定义目录（如`F:\User`）。
 2. 修改新路径下的xxx.ini文件内的路径信息，修改完成需要重启生效。
-    ![img](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/sys/modify-app-default-path/2.jpg)
+    ![img](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/sys/modify-default-path/2.jpg)
 
 ### Gradle
 
@@ -111,5 +111,8 @@ yarn-offline-mirror-pruning true
    cache=F:\App\NodeJs\Npm\node_cache
    ```
 
-   
+
+# 其他
+
+对于Windows，可以参看官方的[释放 Windows 中的驱动器空间](https://support.microsoft.com/zh-cn/windows/%E9%87%8A%E6%94%BE-windows-%E4%B8%AD%E7%9A%84%E9%A9%B1%E5%8A%A8%E5%99%A8%E7%A9%BA%E9%97%B4-85529ccb-c365-490d-b548-831022bc9b32)教程，或许会有帮助。
 
