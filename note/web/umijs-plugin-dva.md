@@ -3,11 +3,20 @@ title: '@umijs/plugin-dva 的相关概念和使用笔记'
 author: 'Laeni'
 tags: umijs, @umijs/plugin-dva, dva, react
 date: '2021-06-13'
-updated: '2021-06-14'
+updated: '2021-08-14'
 ---
 dva 是一个基于 [redux](https://github.com/reduxjs/redux) 和 [redux-saga](https://github.com/redux-saga/redux-saga) 的数据流方案，为了简化开发体验，dva 额外内置了 [react-router](https://github.com/ReactTraining/react-router) 和 [fetch](https://github.com/github/fetch)。`@umijs/plugin-dva`目的是能在umi中快速集成dva。
 
 [@umijs/plugin-dva文档](https://umijs.org/zh-CN/plugins/plugin-dva) [DvaJS文档](https://dvajs.com/)
+
+> 虽然`dva`或`redux`目前（2021年）依然是业内`React`应用的常用数据流解决方案，但并不代表是最好的解决方案。拿`dva`来说，在我看来可能存在以下问题：
+>
+> 1. `Reducer`和`Effect`都是修改`State`的，区别在于一个同步一个异步且`Effect`提供更多语法糖，并且`Reducer`的实现基本都是模板化的（即多个`Model`基本就是复制粘贴）,而这样的做法仅仅只是为了适应`React`单一方向数据流思想而已。
+> 2. 在调用`Reducer`或`Effect`时，只能通过字符串来表明需要调用的方法以及该方法所在的命名空间，而使用字符串的缺点显而易见。
+> 3. 由于触发调用`Reducer`或`Effect`时只能通过构造`Action`来完成，但是`Action`的结构是非常奇怪的，原因是由于`Action`必须具有`type`属性，导致我们需要将载荷数据放在`Action`的某个字段内（通常是`payload`），否则无法在载荷数据中携带`type`属性。这样对于老手来说可能不是问题，但是对于新手来说很容奇产生问题，因为这必须依赖经验（如载荷放到`payload`内）来避免问题。
+> 4. 实际应用中，`Subscription`几乎不会用到，原因是由于`Subscription`方法会在服务端和客户端都会执行，且它产生的数据是通过`Props`传递的，这就必须要求它产生的数据只能是“固定”的，否则在开启`SSR`时会导致服务端渲染得到结果和客户端渲染的不同从而导致React报错。退一步讲，这里假设是React的bug，那`Subscription`在客户端和服务端都执行也是不合理的。
+>
+> 除了`dva`和`redux`，数据流框架还有很多，在这里推荐使用[RxJs](https://github.com/ReactiveX/rxjs)。
 
 ### 数据流向
 
