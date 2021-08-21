@@ -1,9 +1,9 @@
 ---
-title: DDD入门
+title: 领域驱动设计（DDD）入门
 tags: 'DDD, 领域驱动设计, 软件工程'
 author: Laeni
 date: '2021-08-18'
-updated: '2021-08-20'
+updated: '2021-08-21'
 ---
 
 DDD似乎一直都比较神秘，不同的人对它的理解不同，导致实际应用也差别很大。以下文章几乎全部摘录自[博客园](https://www.cnblogs.com/ahau10)，手动搬一遍（略有删改）除了作为笔记查阅之外主要是为了加深印象。原文链接在文末可找到。
@@ -123,6 +123,7 @@ DDD的玩法是： 开发 <--> 业务 <--> 仓储（数据库），看到区别�
 - Intellij Idea lombok 插件（注意安装插件要给Idea配置代理，否则装不上）
 
 1. 新建Spring Boot工程
+
 2. 新建包结构
    我们知道DDD有四层架构。
    - 用户接口层
@@ -130,85 +131,84 @@ DDD的玩法是： 开发 <--> 业务 <--> 仓储（数据库），看到区别�
    - 领域层
    - 基础设施层
      按照这个结构我们分别建4个包： `ui`, `application`, `domain`, `infrastructure`。
+   
 3. 实现模型
    没有表结构突然不知道从哪里开始了？以前因为已经有表结构了，我们一开始用工具自动生成entity，然后就开始写controller，service，dao了。
    DDD是以领域为核心的,领域里的模型是稳定的，不管外部怎么变化，我们的模型是保持不变的。注意这里说的“稳定”、“不变”是指项目上线后不变，在开发阶段，模型是要不断优化调整的。所以我们就从模型开始。当然如果你的项目要先跟别人定好接口再开发，那你可以先从controller开始。然后构建模型。
-
-在``domain`下新建`model.product.Product`类。
-
-```java
-/**
- * 商品聚合根
- * 没必要把所有的属性一股脑儿暴露出来，要修改“我”的属性，请调用“我”的方法，因为“我”的属性我自己最清楚
- */
-@Entity
-@Getter
-@EqualsAndHashCode(of = "productNo")
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 因为hibernate需要一个无参构造函数。且这里的访问权限给的是protected，这样是防止外部直接`new Product()`创建一个空的商品。
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Product implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    /** 唯一的产品编码 */
-    @Column(name = "product_no", length = 32, nullable = false, unique = true)
-    private String productNo;
-    /** 名称 */
-    @Column(name = "name", length = 64, nullable = false)
-    private String name;
-    /** 价格 */
-    @Column(name = "price", precision = 10, scale = 2)
-    private BigDecimal price;
-    /** 类目 */
-    @Column(name = "category_id", nullable = false)
-    private Integer categoryId;
-    /** 状态 */
-    @Column(name = "product_status", nullable = false)
-    private Integer productStatus;
-    /** 是否允许跨类目 */
-    @Column(name = "allow_across_category", nullable = false)
-    private Boolean allowAcrossCategory;
-    /** 备注字段 */
-    @Column(name = "remark", length = 256)
-    private String remark;
-
-    public static Product of(String productNo, String name, BigDecimal price, Integer categoryId, Integer productStatus, String remark, Boolean allowAcrossCategory) {
-        return new Product(null, productNo, name, price, categoryId, productStatus, remark, allowAcrossCategory);
-    }
-}
-```
-
-类的属性用JPA的@Column跟db表的字段对应起来，并且类的属性跟业务密切相关。
-此外，除了一个自增的主键，商品应该还一个唯一的产品编码。这个唯一的产品编码就是业务主键，跟外部交互的时候都使用这个业务主键。这至少有3个好处：
-
-- 对前端不会暴露我们的实现
-- 如果有一天需要迁移数据的时候，因为业务主键是稳定的，很好迁移。而物理主键是会变的，迁移到另一张表可能还会有主键冲突,到时候就很难受。
-- 业务主键是可读的，并且其本身包含了一些有用信息。
-
-如果有参构造函数访问权限是public。这意味着，其他地方可以随意的创建一个商品。问题是他们知道如何正确的创建一个商品吗？
-也许你会说，我们把创建商品需要的业务规则都放在这个构造函数里不就行了吗？ 行是行，就是不灵活了。假如某一天我们想返回Product的一个子类怎么办？
-
-所以我们应该提供一个工厂方法。由这个工厂方法统一创建商品。 双击构造函数名称，右击鼠标 Refactor >> Replace Constructor with Factory Method
-输入工厂方法名`of`。 你会看到，idea自动把构造函数变成了私有的方法。再看看代码，好像有点“坏味道”，既然已经用了lombok，为什么还要自己写一个构造函数呢。
-把有参构造函数删掉， 在类上加一个 `@AllArgsConstructor(access = AccessLevel.PRIVATE)`
-
-有参数构造函数的访问权限是private。 第一次见到这个你可能会觉得不可思议，因为以前你从来没想过要把构造函数变成私有的。
-不仅如此，setter和getter也是随便给。这是不对的，DDD的代码要严格控制访问权限，这样才能最大程度上保证模型的稳定。不然就会出现一个属性的值不知道在什么地方被改了，你却不知道的情况。一旦出现这样的bug，简直就是灾难。
-
-虽然实体是可被修改的，但不代表所有属性都随便调用setter轻轻松松就改掉了。
-如果确实需要修改某个属性，请提供一个具体的方法，比如`changeProductStatus`，这个方法跟业务上也应该有对应关系，否则就没必要单独写一个方法。
-这才叫封装嘛，你说是不是？
-
-**没有setter和getter，hibernate还能实现持久化吗？**
-以前的hibernate要求entity必须有setter和getter，现在不需要了。
-
-工厂方法也有点问题。主键id是自动生成的，怎么能让程序传进来呢。所以工厂方法删除id这个参数，在调用Product有参构造函数的时候id传一个null。
-
-1. 启动项目
-
+   在``domain`下新建`model.product.Product`类。
+   
+   ```java
+   /**
+    * 商品聚合根
+    * 没必要把所有的属性一股脑儿暴露出来，要修改“我”的属性，请调用“我”的方法，因为“我”的属性我自己最清楚
+    */
+   @Entity
+   @Getter
+   @EqualsAndHashCode(of = "productNo")
+   @NoArgsConstructor(access = AccessLevel.PROTECTED) // 因为hibernate需要一个无参构造函数。且这里的访问权限给的是protected，这样是防止外部直接`new Product()`创建一个空的商品。
+   @AllArgsConstructor(access = AccessLevel.PRIVATE)
+   public class Product implements Serializable {
+       @Id
+       @GeneratedValue(strategy = GenerationType.IDENTITY)
+       private Long id;
+       /** 唯一的产品编码 */
+       @Column(name = "product_no", length = 32, nullable = false, unique = true)
+       private String productNo;
+       /** 名称 */
+       @Column(name = "name", length = 64, nullable = false)
+       private String name;
+       /** 价格 */
+       @Column(name = "price", precision = 10, scale = 2)
+       private BigDecimal price;
+       /** 类目 */
+       @Column(name = "category_id", nullable = false)
+       private Integer categoryId;
+       /** 状态 */
+       @Column(name = "product_status", nullable = false)
+       private Integer productStatus;
+       /** 是否允许跨类目 */
+       @Column(name = "allow_across_category", nullable = false)
+       private Boolean allowAcrossCategory;
+       /** 备注字段 */
+       @Column(name = "remark", length = 256)
+       private String remark;
+   
+       public static Product of(String productNo, String name, BigDecimal price, Integer categoryId, Integer productStatus, String remark, Boolean allowAcrossCategory) {
+           return new Product(null, productNo, name, price, categoryId, productStatus, remark, allowAcrossCategory);
+       }
+   }
+   ```
+   
+   类的属性用JPA的@Column跟db表的字段对应起来，并且类的属性跟业务密切相关。
+   此外，除了一个自增的主键，商品应该还一个唯一的产品编码。这个唯一的产品编码就是业务主键，跟外部交互的时候都使用这个业务主键。这至少有3个好处：
+   
+   - 对前端不会暴露我们的实现
+   - 如果有一天需要迁移数据的时候，因为业务主键是稳定的，很好迁移。而物理主键是会变的，迁移到另一张表可能还会有主键冲突,到时候就很难受。
+   - 业务主键是可读的，并且其本身包含了一些有用信息。
+   
+   如果有参构造函数访问权限是public。这意味着，其他地方可以随意的创建一个商品。问题是他们知道如何正确的创建一个商品吗？
+   也许你会说，我们把创建商品需要的业务规则都放在这个构造函数里不就行了吗？ 行是行，就是不灵活了。假如某一天我们想返回Product的一个子类怎么办？
+   
+   所以我们应该提供一个工厂方法。由这个工厂方法统一创建商品。 双击构造函数名称，右击鼠标 Refactor >> Replace Constructor with Factory Method
+   输入工厂方法名`of`。 你会看到，idea自动把构造函数变成了私有的方法。再看看代码，好像有点“坏味道”，既然已经用了lombok，为什么还要自己写一个构造函数呢。
+   把有参构造函数删掉， 在类上加一个 `@AllArgsConstructor(access = AccessLevel.PRIVATE)`
+   
+   有参数构造函数的访问权限是private。 第一次见到这个你可能会觉得不可思议，因为以前你从来没想过要把构造函数变成私有的。
+   不仅如此，setter和getter也是随便给。这是不对的，DDD的代码要严格控制访问权限，这样才能最大程度上保证模型的稳定。不然就会出现一个属性的值不知道在什么地方被改了，你却不知道的情况。一旦出现这样的bug，简直就是灾难。
+   
+   虽然实体是可被修改的，但不代表所有属性都随便调用setter轻轻松松就改掉了。
+   如果确实需要修改某个属性，请提供一个具体的方法，比如`changeProductStatus`，这个方法跟业务上也应该有对应关系，否则就没必要单独写一个方法。
+   这才叫封装嘛，你说是不是？
+   
+   **没有setter和getter，hibernate还能实现持久化吗？**
+   以前的hibernate要求entity必须有setter和getter，现在不需要了。
+   
+   工厂方法也有点问题。主键id是自动生成的，怎么能让程序传进来呢。所以工厂方法删除id这个参数，在调用Product有参构造函数的时候id传一个null。
+   
+4. 启动项目
    在mysql里创建一个名为`product_center`的库，启动项目。hibernate自动为我们生成了一个product表。
 
-2. 复写equals和hashCode方法(重要)
+5. 复写equals和hashCode方法(重要)
    使用`productNo`生成的equals和hashCode方法。`Product`的`productNo`是唯一的，两个实体，只要这个字段相同，就认为是同一个实体。
 
 ## 构建多对多关系
