@@ -999,9 +999,41 @@ public class Product extends AuditEntity implements Serializable {
 
 ## 概念
 
+### DDD
+
+DDD（Domain Driven Design，领域驱动设计）
+
+### UL
+
+UL（Ubiquitous Language，通用语言）
+
+### BC
+
+BC（Bounded Context，限界上下文）
+
+### 对象
+
+对象可以分为生活中的对象和语法层面的对象。而生活中的对象往往对应到代码层面的模型，而一个模型一一般由一系列的对象组成。
+
 ### 聚合根
 
+**明确含义：**一个Bounded Context（界定的上下文）可能包含多个聚合，每个聚合都有一个根实体，叫做聚合根；
+
 独立的生命周期
+
+### 实体
+
+实体是什么?简单的说，实体就是，我们做一件事情涉及到的事物。
+
+> *小红用抹布擦桌子。*
+
+这个场景中，实体有小红、抹布、桌子。
+
+> *一群大雁从北往南飞去。*
+
+这个描述中，实体有大雁。除了大雁呢？对，还有雁群。
+
+### 值对象
 
 ## 四层架构(含包示例)
 
@@ -1010,17 +1042,17 @@ public class Product extends AuditEntity implements Serializable {
 **常见约定包结构**
 
 > `ui/interfaces`
-> 	web
-> 		controller
-> 			common
+> └─ web
+> &nbsp;    └─ controller
+> &nbsp;         └─ common
 
 ### 应用层
 
 **常见约定包结构**
 
-> `web`
-> 	controller
-> 		common
+> `application`
+> ├─ common
+> └─ impl
 
 **通常工作**
 
@@ -1036,20 +1068,52 @@ public class Product extends AuditEntity implements Serializable {
 **常见约定包结构**
 
 > `domain`
-> 	某某领域 - `xxx`
-> 		模型 - `model` - 不一定要将数据库实体和其他分开
-> 			某某领域2 - `xxx2`
+> ├─ 某某领域 - `xxx`
+> │   └─ 模型 - `model` - 不一定要将数据库实体和其他分开
+> └─ 某某领域2 - `xxx2`
 
 ### 基础设施层
 
 **常见约定包结构**
 
 > `infrastructure`
-> 	权限控制 - `acl`
-> 		缓存 - `codis/redis`
-> 		配置 - `configuration`
-> 		工具类 - `kit`
-> 		日志配置 - `logger`
+> └─ 权限控制 - `acl`
+> &nbsp;    ├─ 缓存 - `codis/redis`
+> &nbsp;    ├─ 配置 - `configuration`
+> &nbsp;    ├─ 工具类 - `kit`
+> &nbsp;    └─ 日志配置 - `logger`
+
+## 其他
+
+### 聚合根、实体、值对象的区别
+
+**从标识的角度：**聚合根具有全局的唯一标识，而实体只有在聚合内部有唯一的本地标识，值对象没有唯一标识，不存在这个值对象或那个值对象的说法；
+
+**从是否只读的角度：**聚合根除了唯一标识外，其他所有状态信息都理论上可变；实体是可变的；值对象是只读的；
+
+**从生命周期的角度：**聚合根有独立的生命周期，实体的生命周期从属于其所属的聚合，实体完全由其所属的聚合根负责管理维护；值对象无生命周期可言，因为只是一个值；
+
+###  聚合根、实体、值对象对象之间如何建立关联？
+
+**聚合根到聚合根：**通过ID关联；
+
+**聚合根到其内部的实体：**直接对象引用；
+
+**聚合根到值对象：**直接对象引用；
+
+**实体对其他对象的引用规则：**1）能引用其所属聚合内的聚合根、实体、值对象；2）能引用外部聚合根，但推荐以ID的方式关联，另外也可以关联某个外部聚合内的实体，但必须是ID关联，否则就出现同一个实体的引用被两个聚合根持有，这是不允许的，一个实体的引用只能被其所属的聚合根持有；
+
+**值对象对其他对象的引用规则：**只需确保值对象是只读的即可，推荐值对象的所有属性都尽量是值对象；
+
+### 如何识别聚合与聚合根？
+
+**识别顺序：**先找出哪些实体可能是聚合根，再逐个分析每个聚合根的边界，即该聚合根应该聚合哪些实体或值对象；最后再划分Bounded Context；
+
+**聚合边界确定法则：**根据不变性约束规则（Invariant）。不变性规则有两类：1）聚合边界内必须具有哪些信息，如果没有这些信息就不能称为一个有效的聚合；2）聚合内的某些对象的状态必须满足某个业务规则；
+
+### 如何进行领域建模
+
+[领域建模的三字经法：](https://blog.csdn.net/chuixue24/article/details/105051446/)找名词、加属性、连关系。
 
 ## FAQ
 
@@ -1086,4 +1150,8 @@ command是相对稳定的东西。不管外部端口如何变化，只要能把�
 - [SpringBoot+JPA实现DDD（五）](https://www.cnblogs.com/ahau10/p/13522928.html)
 - [SpringBoot+JPA实现DDD（六）](https://www.cnblogs.com/ahau10/p/13524644.html)
 - [文章分类 - 领域模型](https://www.cnblogs.com/legend886/category/971021.html)
+- <https://blog.csdn.net/chang_ge/article/details/80943974>
+- [DDD分层架构的三种模式](https://www.jianshu.com/p/a775836c7e25)
+- [领域建模详解](https://blog.csdn.net/chuixue24/article/details/105051446/) | [云南大学软件学院PPT](https://wenku.baidu.com/view/b5dfce3303d8ce2f00662382.html)
+- [8.领域建模](https://zhuanlan.zhihu.com/p/120412344)
 
