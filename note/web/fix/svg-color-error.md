@@ -8,6 +8,14 @@ updated: '2021-09-04'
 
 在同一个页面上同时使用多张SVG图片（直接将SVG代码嵌入到HTML中）可能会导致部分图片颜色错乱，原因是大部分SVG都是通过软件制作的，软件制作时往往会增加一些样式，这些样式一般又是以类似`CSS内联`的方式申明的，这就需要给元素进行标记（一般是用`id`），而`id`是由软件自动生成，这就很容易造成`id`重复。而同一个`id`在一张SVG图片中是唯一的，但是在整个页面中就不一定了，所以这些冲突就是导致颜色等错乱的根本原因。
 
+下图为颜色错误的效果：
+
+![SVG颜色错乱示例](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/web/fix/svg-color-error/svg-color-error.jpg)
+
+而实际应该是类似这样的：
+
+![SVG正确的样式](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/web/fix/svg-color-error/svg-color-ok.jpg)
+
 解决方法至少有以下两种：
 
 1. 使用`<img>`标签来使用SVG图片，这样每张图片的`id`都是隔离的,所以不会出现这种情况。
