@@ -38,15 +38,15 @@ updated: '2022-03-05'
 spring:
   shardingsphere:
     datasource:
-      names: db0,db1 # 列出所有真实数据源名称，多数据源以逗号分隔. -- 这里暂不清楚下面已经配置为什么还要在这里再些一次，不过问题不大
-      db0:
+      names: ds0,ds1 # 列出所有真实数据源名称，多数据源以逗号分隔. -- 这里暂不清楚下面已经配置为什么还要在这里再些一次，不过问题不大
+      ds0:
         type: com.zaxxer.hikari.HikariDataSource #数据库连接池类名称
         driver-class-name: com.mysql.cj.jdbc.Driver #数据库驱动类名
         jdbc-url: jdbc:mysql://...
         username: ...
         password: ...
         # 数据库连接池的其它属性
-      db1:
+      ds1:
         type: com.zaxxer.hikari.HikariDataSource #数据库连接池类名称
         driver-class-name: com.mysql.cj.jdbc.Driver #数据库驱动类名
         jdbc-url: jdbc:mysql://...
@@ -64,16 +64,16 @@ spring:
     sharding:
       tables:
         table_name: # 待分表的表明
-          logic-table: tbl_personal_customer # [可选]逻辑表名 - 一般与前面的Key(表名)相同，至于什么情况下不同没有研究过
+          logic-table: table_name # [可选]逻辑表名 - 一般与前面的Key(表名)相同，至于什么情况下不同没有研究过
           # [必须]实际数据节点 - 必须把该表相关的所有节点表以`数据源名.表名`的格式全部列出来
           # 数据源名取值为创建数据时配置的名字(spring.shardingsphere.datasource.names)之一
           # 该字符串可以为`Groovy`表达式，且执行之后结果为数组，也可以是逗号分割的多个字符串，再或者是组合出现，如下示例所示：
-          #    cs.table_name_0,cs.table_name_1,...,cs.table_name_9
-          #    $->{['cs.table_name_0','cs.table_name_1',...,'cs.table_name_9']} // 与上面的等效
-          #    cs.table_name_0,cs.table_name_$->{1..9} // 与上面的等效
-          #    cs.table_name_$->{0..9} // 与上面的等效
+          #    ds0.table_name_0,ds0.table_name_1,...,ds0.table_name_9
+          #    $->{['ds0.table_name_0','ds0.table_name_1',...,'ds0.table_name_9']} // 与上面的等效
+          #    ds0.table_name_0,ds0.table_name_$->{1..9} // 与上面的等效
+          #    ds0.table_name_$->{0..9} // 与上面的等效
           # 这里全部列出来的原因是：如果SQL条件中不包含分片列时需要访问全部分片表，此时需要用到
-          actual-data-nodes: "$->{['cs.table_name_0','cs.table_name_1',...,'cs.table_name_9']}"
+          actual-data-nodes: "$->{['ds0.table_name_0','ds0.table_name_1',...,'ds0.table_name_9']}"
           database-strategy: # [只有需要分库时才配置]分库策略 - 算法以数组形式返回该次SQL实际对应的数据源名称
             # 一般情况下只会配置一种策略，是否可以同时配置多种策略尚未可知
             # 其他算法的适用场景及用法参加官网： https://shardingsphere.apache.org/document/4.1.1/cn/features/sharding/concept/sharding/
