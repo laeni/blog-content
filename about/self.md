@@ -25,11 +25,10 @@ updated: '2021-05-16'
 
 <details>
 <summary>Show equivalent JSX</summary>
-
 ```jsx
 <h1>
   Hello, <em>world</em>!
 </h1>
 ```
-
 </details>
+
