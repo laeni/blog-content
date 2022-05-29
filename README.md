@@ -38,6 +38,13 @@ export interface Matter {
      * 开启文章的评论功能.
      * 默认: true
      */
-    comments?: string;
+    comments?: boolean;
+
+    /**
+     * 是否隐藏.
+     * 防止部分还为完成的文章不小心提交后对外展示.
+     * 默认: false
+     */
+    hide?: boolean;
 }
 ```
