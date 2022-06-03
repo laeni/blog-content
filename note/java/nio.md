@@ -6,7 +6,7 @@ date: '2021-09-25'
 updated: '2021-09-25'
 ---
 
-[原文链接](http://tutorials.jenkov.com/java-nio/overview.html)   **作者：**Jakob Jenkov   **译者：**airu   **校对：**丁一
+[原文链接](http://tutorials.jenkov.com/java-nio/overview.html)   **作者:** Jakob Jenkov   **译者:** airu   **校对:** 丁一
 
 Java NIO 由以下几个核心部分组成：
 
