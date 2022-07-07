@@ -18,7 +18,7 @@ https协议是建立在http的基础之上的，即在http的基础了加了非�
 
 ![image-20220705223819578](https://pictures-1252266447.cos.ap-chengdu.myqcloud.com/blog/note/security/generate-https-ca/image-20220705223819578.png)
 
-上图所示所示时一般https证书的层级结构，我们最终也将实现这种效果。
+上图所示所示是一般https证书的层级结构，我们最终也将实现这种效果。
 
 ### 安装cfssl工具
 
@@ -342,3 +342,4 @@ $ sudo $javaHome/bin/keytool -importcert -noprompt -keystore $javaHome/jre/lib/s
 ## 参考
 
 - [Build Private PKI/TLS CA for Certificates Management With CloudFlare CFSSL](https://computingforgeeks.com/build-pki-ca-for-certificates-management-with-cloudflare-cfssl/)
+- [使用自定义根 CA 生成 Azure 应用程序网关自签名证书](https://docs.microsoft.com/zh-cn/azure/application-gateway/self-signed-certificates)
