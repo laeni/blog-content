@@ -99,7 +99,7 @@ spring:
       binding-tables: # 绑定表 - 如果指定的话,在某些查询种会有性能优化
         - t_order,t_order_item
         - tab_1,tab_2 # 另一组绑定表
-      broadcast-tables: # 广播表
+      broadcast-tables: # 广播表 - 所有数据源都存在的表,详情参见官方文档概念部分
         - t_config
       default-data-source-name: ds0 # 默认数据源
       default-database-strategy: # 默认分库策略

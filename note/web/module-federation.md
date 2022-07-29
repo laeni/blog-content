@@ -294,3 +294,10 @@ export default function Home({ loaded }) {
 
 **P.S** 以上代码参考自[module-federation-examples](https://github.com/module-federation/module-federation-examples.git)，关于`module-federation`的更多用法可直接参考该项目。
 
+## 其他
+
+自动根据输出文件识别可用的组件正则： `("|')(\./[\w]+)("|'):[ ]?function\(\)`
+
+## 参考资料
+
+<https://survivejs.com/webpack/output/module-federation/>
