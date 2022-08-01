@@ -1,5 +1,5 @@
 ---
-title: 有关非对称加密的相关概念
+title: 安全相关概念
 author: 'Laeni'
 tags: 加密, 证书, SLL, TLS
 date: '2022-01-03'
@@ -23,7 +23,19 @@ PKI: Public Key Infrastructure: 公钥基础设施。
 
 ### CA
 
-Certificate authority（证书颁发机构）。
+Certificate authority（证书颁发机构）。CA证书，即证书颁发机构颁发的证书。
+
+### PEM
+
+PEM(Privacy Enhanced Mail)通常用于数字证书认证机构（Certificate Authorities，CA），扩展名为`.pem`, `.crt`, `.cer`, 和` .key`。内容为`Base64`编码的ASCII码文件，有类似的头尾标记服务器认证证书。Apache和nginx等类似的服务器使用PEM格式证书。
+
+### DER
+
+DER(Distinguished Encoding Rules)与PEM不同之处在于其使用二进制而不是Base64编码的ASCII。扩展名为`.der`，但也经常使用`.cer`用作扩展名，所有类型的认证证书和私钥都可以存储为DER格式，Java是其典型使用平台。
+
+### CSR
+
+CSR(Certificate Signing Request)，它是向CA机构申请数字证书时使用的请求文件。在生成请求文件前，我们需要准备一对对称密钥。私钥信息自己保存，请求中会附上公钥信息以及国家，城市，域名，Email等信息，CSR中还会附上签名信息。当我们准备好CSR文件后就可以提交给CA机构，等待他们给我们签名，签好名后我们会收到`.crt`文件，即证书。
 
 ### SSL
 
@@ -31,11 +43,30 @@ SSL(Secure Socket Layer 安全套接层)是一个加密函数库，目前基本�
 
 ### TLS
 
-TLS(Transport Layer Security 安全传输层协议)，目前已经发展出三个版本:TLSv1.0、 TLSv1.1、TLSv1.2。目前TLSv1 相当于 SSLv3，通常我们将可不对它们做过细的区分。
+TLS(Transport Layer Security 安全传输层协议)，目前已经发展出三个版本:TLSv1.0、TLSv1.1、TLSv1.2。目前TLSv1 相当于 SSLv3，通常我们将可不对它们做过细的区分。
 
 ## 其他
 
 ### RFC
 
 RFC是Internet协议字典，它里包含了所有互联网技术的规范！RFC官方网站: [www.rfc-editor.org](http://www.rfc-editor.org/)
+
+### 常用属性
+
+这些属性大部分用作主题（Subject）属性。
+
+| 名称                    | 描述                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| CN（Common Name）       | 常用名/身份/认证机构/颁发者<br />后面生成的证书会显示该证书由某某机构颁发，该名称一般不能随意 填写。<br />etcd、kube-apiserver 会将该值当作用户名。 |
+| O（Organization）       | 组织名称，公司名称<br />kube-apiserver 会将该值当作请求用户所属的组 (Group)。 |
+| C（Country）            | 国家                                                         |
+| ST（State）             | 州，省                                                       |
+| L（Locality）           | 地区，城市（一般填写“市”）                                   |
+| OU（Organization Unit） | 组织单位名称，机构，公司部门                                 |
+
+
+
+
+
+
 

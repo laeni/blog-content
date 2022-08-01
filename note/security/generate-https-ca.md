@@ -343,3 +343,5 @@ $ sudo $javaHome/bin/keytool -importcert -noprompt -keystore $javaHome/jre/lib/s
 
 - [Build Private PKI/TLS CA for Certificates Management With CloudFlare CFSSL](https://computingforgeeks.com/build-pki-ca-for-certificates-management-with-cloudflare-cfssl/)
 - [使用自定义根 CA 生成 Azure 应用程序网关自签名证书](https://docs.microsoft.com/zh-cn/azure/application-gateway/self-signed-certificates)
+- <https://computingforgeeks.com/build-pki-ca-for-certificates-management-with-cloudflare-cfssl/>
+

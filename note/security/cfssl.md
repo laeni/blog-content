@@ -8,21 +8,225 @@ updated: '2022-01-03'
 
 [CFSSL](https://github.com/cloudflare/cfssl) 是 CloudFlare 的 PKI/TLS 瑞士军刀。它既是一个命令行工具，也是一个用于签署、验证和捆绑 TLS 证书的 HTTP API 服务器。
 
-## cfssl
+## cfssl使用示例
+
+> 由于`cfssl`只返回`json`内容，所以一般需要通过`cfssljson`从返回的`json`中提取对内容并写入到文件中，所以后续示例一般都需要结合`cfssljson`来使用。假如将`cfssl`输出的内容保存到`ca-out.txt`文件中，那么删除`ca-out.txt`中多余的内容（仅保留最后的Json）后，使用`cat ca-out.txt | cfssljson -bare ca`将Json中的内容提取到文件中，生成的文件分别为：`CA证书（ca.pem）`、`私钥（ca-key.pem）`和`证书请求（ca.csr）`
+
+### 配置cfssl
+
+配置是可选的，如果不配置则使用默认配置。
+
+查看默认配置
+
+```shell
+$ cfssl print-defaults config # 这里的config为参数类型，使用 cfssl print-defaults list 查看支持的类型
+{
+    "signing": {
+        "default": {
+            "expiry": "168h"
+        },
+        "profiles": {
+            "www": {
+                "expiry": "8760h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth"
+                ]
+            },
+            "client": {
+                "expiry": "8760h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "client auth"
+                ]
+            }
+        }
+    }
+}
+```
+
+根据自身需要修改配置
+
+```shell
+cat > cfssl-config.json <<EOF
+{
+    "signing": {
+        "default": {
+            "expiry": "8760h"
+        },
+        "profiles": {
+            "www": {
+                "expiry": "87600h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth"
+                ]
+            },
+            "client": {
+                "expiry": "87600h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "client auth"
+                ]
+            },
+            "kubernetes": {
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ],
+                "expiry": "87600h"
+            }
+        }
+    }
+}
+EOF
+```
+
+### CA证书
+
+这里我们生成的CA证书由于没有其他颁发机构给我们签名，所以它只能自签名，这种证书又叫根证书。
+
+#### 根据配置生成新CA
+
+##### cfssl
+
+1. 创建`CSRJSON`
+    ```shell
+    $ cat > ./ca-csr.json <<EOF
+    {
+      "CN": "Laeni Global Root CA",
+      "key": {
+        "algo": "rsa",
+        "size": 2048
+      },
+      "ca": {
+        "expiry": "87600h"
+      },
+      "names": [
+        {
+          "C": "CN",
+          "ST": "YunNan",
+          "L": "KunMing",
+          "O": "Laeni Inc",
+          "OU": "www.laeni.cn"
+        }
+      ]
+    }
+    EOF
+    ```
+    
+2. 根据`CSRJSON`生成私钥和证书请求
+
+    ```shell
+    $ cfssl genkey csr.json | cfssljson -bare ca
+    ```
+
+    > 由于证书请求是用于将公钥交给证书办法机构进行生成证书用的，而这里我们生成的的根证书（不需要给别人），所以在这里生成的证书请求是没用的。但由于一般很少生成根CA，而是生成普通CA，然后使用也有的根CA进行签名，所以这里记录下。
+
+3. 生成证书
+
+    ```shell
+    $ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+    ```
+
+##### openssl
+
+1. 生成私钥
+    ```shell
+    $ openssl genrsa -out RootCA.key 2048
+    ```
+    
+2. 生成证书请求
+
+    ```shell
+    $ openssl req -new -key RootCA.key -out RootCA.csr –days 90
+    ```
+    
+    > 同`cfssl`一样，由于证书请求是用于将公钥交给证书办法机构进行生成证书用的，而这里我们生成的的根证书（不需要给别人），所以在这里生成的证书请求是没用的。
+    
+3. 直接根据私钥生成证书
+
+    ```shell
+    # 由于openssl没有指定类似上面的 csr.json 配置内容，所以生成时需要根据提示输入相关的主题信息
+    $ openssl req -new -x509 -days 9131 -key RootCA.key -extensions v3_ca -out RootCA.crt
+    ```
+
+4. 如有需要，还可以生成`p12`格式证书
+
+    ```shell
+    $ openssl pkcs12 -export -inkey RootCA.key -in RootCA.crt -out RootCA.pfx
+    ```
+
+> `cfssl`和`openssl`生成的文件作用完全相同，仅仅只是文件后缀名不一致。
+
+#### 根据配置和已有密钥生成CA
+
+由于已经明确提供了密钥，所以不会再生成新的密钥。
+
+使用`cfssl gencert -initca -ca-key key CSRJSON`生成证书以及证书请求：
+
+```sh
+$ cfssl gencert -initca -ca-key ca-key.pem ca-csr.json | cfssljson -bare 2-ca
+```
+
+输出文件：`2-ca.pem（证书）`、`2-ca.csr（证书请求）`
+
+#### 根据原CA证书和密钥重新生成新CA
+
+由于已经有证书了，所以不会再生成证书请求，因为证书请求可以看作生成证书的配置，而从证书中可以得到这些配置。
+
+使用`cfssl gencert -renewca -ca cert -ca-key key`重新生成证书：
+
+```sh
+$ cfssl gencert -renewca -ca ca.pem -ca-key ca-key.pem | cfssljson -bare 3-ca
+```
+
+输出文件：`3-ca.pem（证书）`
+
+### 签名
+
+
+
+## cfssl HELP
 
 使用 CFSSL 包的规范命令行工具。
 
-该`cfssl`命令行工具需要一个命令来指定应该进行何种操作进行：
+该`cfssl`命令行工具需要一个命令来指定应该
 
 ```
-gencert          生成私钥和证书 | generate a private key and a certificate
 sign             签署证书 | signs a certificate
-bundle           构建证书包 | build a certificate bundle
+bundle           构建证书包 | build a certificate bundlesss
 genkey           生成私钥和证书请求 | generate a private key and a certificate request
-serve            启动 API 服务器 | start the API server
+gencert          生成私钥和证书 | generate a private key and a certificate
 version          打印出当前版本 | prints out the current version
 selfsign         生成自签名证书 | generates a self-signed certificate
-print-defaults   打印默认配置 | print default configurations
+
+sign      签名一个客户端证书，通过给定的CA和CA密钥，和主机名
+bundle: 创建包含客户端证书的证书包
+genkey: 生成一个key(私钥)和CSR(证书签名请求)
+scan: 扫描主机问题
+revoke: 吊销证书
+certinfo: 输出给定证书的证书信息， 跟cfssl-certinfo 工具作用一样
+gencrl: 生成新的证书吊销列表
+selfsign: 生成一个新的自签名密钥和 签名证书
+print-defaults 打印默认配置，这个默认配置可以用作模板
+serve          启动一个HTTP API服务
+gencert        生成新的key(密钥)和签名证书
+ -ca      指明ca的证书
+ -ca-key  指明ca的私钥文件
+ -config  指明请求证书的json文件
+ -profile 与-config中的profile对应，是指根据config中的profile段来生成证书的相关信息
+ocspdump        从cert db 中的所有 OCSP 响应中生成一系列连贯的 OCSP 响应，供 ocspserve 使用
+ocspsign  为给定的CA、Cert和状态签署OCSP响应。返回一个base64编码的OCSP响应
+info      获取有关远程签名者的信息
+ocsprefresh: 用所有已知未过期证书的新OCSP响应刷新ocsp_responses表。
+ocspserve: 设置一个HTTP服务器，处理来自文件或直接来自数据库的OCSP请求（见RFC 5019）。
 ```
 
 使用`cfssl [command] -help`以了解更多的命令。该`version`命令不带任何参数。
@@ -39,6 +243,29 @@ print-defaults   打印默认配置 | print default configurations
 ### 常用的配置文件
 
 #### CSRJSON - 请求JSON文件
+
+默认csr`cfssl print-defaults csr`
+
+```json
+{
+    "CN": "example.net",
+    "hosts": [
+        "example.net",
+        "www.example.net"
+    ],
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "C": "US",
+            "ST": "CA",
+            "L": "San Francisco"
+        }
+    ]
+}
+```
 
 证书请求配置文件，用于生成证书请求（`.csr`）。
 
@@ -67,7 +294,7 @@ print-defaults   打印默认配置 | print default configurations
 
 #### SUBJECT - 主题配置文件
 
-该文件一般是可选的。
+该文件一般是不需要的，因为该信息一般在`csr.json`中配置。
 
 ```json
 {
@@ -81,6 +308,63 @@ print-defaults   打印默认配置 | print default configurations
             "OU": "WWW"
         }
     ]
+}
+```
+
+#### cfssl 配置文件
+
+默认配置`cfssl print-defaults config`
+
+```json
+{
+    "signing": {
+        "default": {
+            "expiry": "168h"
+        },
+        "profiles": {
+            "www": {
+                "expiry": "8760h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth"
+                ]
+            },
+            "client": {
+                "expiry": "8760h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "client auth"
+                ]
+            }
+        }
+    }
+}
+```
+
+实例
+
+```json
+{
+    "signing": {
+        "default": {
+            "expiry": "87600h"
+        },
+        // 可以定义多个 profiles，分别指定不同的过期时间、使用场景等参数；后续在签名证书时使用某个 profile；
+        "profiles": {
+            // 此实例只有一个kubernetes模板。
+            "kubernetes": {
+                "usages": [
+                    "signing",          // 表示该证书可用于签名其它证书；生成的 ca.pem 证书中CA=TRUE
+                    "key encipherment",
+                    "server auth",      // 表示client可以用该 CA 对server提供的证书进行验证；
+                    "client auth"       // 表示server可以用该CA对client提供的证书进行验证；
+                ],
+                "expiry": "87600h"
+            }
+        }
+    }
 }
 ```
 
@@ -243,7 +527,7 @@ cfssl bundle [-ca-bundle bundle] [-int-bundle bundle] \
 }
 ```
 
-### 生成证书签名请求和私钥 | Generating certificate signing request and private key
+### 生成证书签名请求和私钥
 
 ```sh
 $ cfssl genkey csr.json | cfssljson -bare xxx
