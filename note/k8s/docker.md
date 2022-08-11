@@ -4,22 +4,22 @@ date: '2021-10-01'
 tags: ["Docker", "容器"]
 ---
 
-# 安装Docker引擎
+## 安装Docker引擎
 
-## Linux环境下安装
+### Linux环境下安装
 
 Linux环境下最简单的就是通过该发行版的软件源进行安装安装，此外还有较为通用的通过软件包形式安装。
 
-### 从镜像源安装
+#### 从镜像源安装
 
-#### 配置镜像源
+##### 配置镜像源
 
 [配置阿里云镜像源](https://developer.aliyun.com/mirror/docker-ce)
 
 > 1. 可能无需配置即可安装，所以可以先跳过次步骤，除非需要安装指定版本。比如 Deepin 就不需要配置。
 > 2. 一般情况默认安装最新版即可,但是如果要配合k8s使用的话可以去[k8s更新日志](https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG)中查看官方已经验证的最新版本。
 
-#### 通过`yum`安装
+##### 通过`yum`安装
 
 [官方文档](https://docs.docker.com/install/linux/docker-ce/centos/)
 
@@ -34,7 +34,7 @@ $ sudo yum-config-manager --enable docker-ce-edge
 $ sudo yum install docker-ce -y
 ```
 
-#### 通过`apt`安装
+##### 通过`apt`安装
 
 参考命令
 
@@ -42,7 +42,7 @@ $ sudo yum install docker-ce -y
 $ sudo apt install docker-ce
 ```
 
-#### 常见问题
+##### 常见问题
 
 1. Centos 8 下安装可能会报找不到 containerd 的错。
    错误原因：一般时由于当前安装的docker版本所依赖的 containerd 版本不存在
@@ -53,15 +53,15 @@ $ sudo apt install docker-ce
    $ yum -y install containerd.io-xxx.rpm
    ```
 
-### 从软件包安装
+#### 从软件包安装
 
 [官方文档](https://docs.docker.com/engine/install/debian/#install-from-a-package)
 
-#### Deepin 安装示例
+##### Deepin 安装示例
 
 进入[某版本的软件包下载页面](https://download.docker.com/linux/debian/dists/buster/pool/stable/amd64/)，下载`containerd.io_xxx_amd64.deb`、`docker-ce-cli_xxx_debian-buster_amd64.deb`和`docker-ce_xxx~debian-buster_amd64.deb`三个包依次安装即可。
 
-### 卸载
+#### 卸载
 
 ```sh
 # 首先查看Docker版本
@@ -81,7 +81,7 @@ $ rm -rf /var/lib/docker
 $ umount /var/lib/docker/devicemapper
 ```
 
-### 启动、停止
+#### 启动、停止
 
 这里仅记录使用 [`systemd`](https://docs.docker.com/config/daemon/systemd/)管理系统启动的Linux。
 
@@ -93,9 +93,9 @@ $ sudo systemctl daemon-reload  # 重新加载systemctl配置
 $ sudo systemctl restart docker # 重启docker
 ```
 
-# 常见安装后配置
+## 常见安装后配置
 
-##  [修改默认存储路径](https://blog.csdn.net/qq_37674858/article/details/81669082)
+###  [修改默认存储路径](https://blog.csdn.net/qq_37674858/article/details/81669082)
 
 ```sh
 $ sudo vi /usr/lib/systemd/system/docker.service
@@ -103,9 +103,41 @@ $ sudo vi /usr/lib/systemd/system/docker.service
 ExecStart=/usr/bin/dockerd --graph /data/docker/lib
 ```
 
+### 修改Cgroup Driver为 systemd
 
+查询Docker使用的驱动：
 
-# Docker Help
+```sh
+$ docker info
+***
+ Cgroup Driver: systemd
+ Cgroup Version: 1
+***
+```
+
+Docker在默认情况下使用的 Cgroup Driver 为 `cgroup`，而 Kubernetes 其实推荐使用 `systemd` 来代替 `cgroupfs`。
+
+编辑 `/etc/docker/daemon.json` (没有该文件就新建一个），添加如下启动项参数并重启即可：
+
+```json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"]
+}
+```
+
+### 修改镜像地址
+
+编辑 `/etc/docker/daemon.json` (没有该文件就新建一个），添加如下启动项参数并重启即可：
+
+```json
+{
+    "registry-mirrors": [
+        "https://mirror.ccs.tencentyun.com"
+    ]
+}
+```
+
+## Docker Help
 
 ```
 Usage:  docker [OPTIONS] COMMAND
@@ -510,7 +542,7 @@ Run 'docker COMMAND --help' for more information on a command.
 
 
 
-# 参考链接
+## 参考链接
 
 [Docker 官网](http://www.docker.com) [Docker打包SpringBoot为镜像](https://www.jianshu.com/p/1d7a1bbd9317)
 

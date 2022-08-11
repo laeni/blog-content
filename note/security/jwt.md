@@ -112,6 +112,10 @@ Authorization: Bearer <token>
 
 请注意，使用签名令牌，令牌中包含的所有信息都会向用户或其他方公开，即使他们无法更改。这意味着您不应将秘密信息放入令牌中。
 
+## 使用限制
+
+1. 如果将令牌通过Http头传输，则需要控制其大小，因为有些服务器头的总大小不能超过8KB的头。
+
 ## 附表
 
 ### 注册声明
@@ -123,8 +127,8 @@ Authorization: Bearer <token>
 | iss  | Issuer - 发行人            | 该JWT的签发者                                               |
 | sub  | Subject - 主体             | 接收JWT的一方                                               |
 | aud  | Audience - 受众            | JWT所面向的用户                                             |
-| exp  | Expiration Time - 到期时间 | jwt的过期时间                                               |
+| exp  | Expiration Time - 到期时间 | jwt的过期时间（秒级时间戳）                                 |
 | nbf  | Not Before                 | 定义在什么时间之前，该jwt都是不可用的                       |
-| iat  | Issued At - 签发于         | jwt的签发时间                                               |
+| iat  | Issued At - 签发于         | jwt的签发时间（秒级时间戳）                                 |
 | jti  | JWT ID                     | jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击 |
 

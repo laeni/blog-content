@@ -65,7 +65,7 @@ $ sudo service nfs-server restart # 或 sudo service nfs-kernel-server restart
 命令：`mount -o resvport <ip>:<NFS目录> <本地挂载目录>`
 
 ```shell
-$ sudo mount -o resvport 10.10.1.1:/nfs nfs-test
+$ sudo mount -o resvport 10.10.1.1:/nfs/node/mac nfs_node_mac
 ```
 
 ### Linux
