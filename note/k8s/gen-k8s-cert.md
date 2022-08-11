@@ -1,5 +1,5 @@
 ---
-title: 生成K8s所需的证书和密钥
+title: 生成K8s所需的证书和密钥及用户配置文件
 author: 'Laeni'
 tags: cfssl, k8s, kubernetes, ssl, 自签发证书, 根证书, 中间证书
 date: '2022-08-01'
@@ -28,10 +28,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > ca-csr.json
    {
      "CN": "kubernetes-ca",
-     "key": {
-       "algo": "rsa",
-       "size": 2048
-     },
+     "key": { "algo": "rsa", "size": 2048 },
      "names": [
        {
          "C":  "CN",
@@ -48,10 +45,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > etcd/ca-csr.json
    {
      "CN": "etcd-ca",
-     "key": {
-       "algo": "rsa",
-       "size": 2048
-     },
+     "key": { "algo": "rsa", "size": 2048 },
      "names": [
        {
          "C":  "CN",
@@ -67,10 +61,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > front-proxy-csr.json
    {
      "CN": "kubernetes-front-proxy-ca",
-     "key": {
-       "algo": "rsa",
-       "size": 2048
-     },
+     "key": { "algo": "rsa", "size": 2048 },
      "names": [
        {
          "C":  "CN",
@@ -158,10 +149,7 @@ $ mkdir k8s && cd k8s/
            "127.0.0.1",
            "localhost"
        ],
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -181,10 +169,7 @@ $ mkdir k8s && cd k8s/
            "127.0.0.1",
            "localhost"
        ],
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -198,10 +183,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > etcd/healthcheck-client-csr.json
    {
        "CN": "kube-etcd-healthcheck-client",
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -216,10 +198,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > apiserver-etcd-client-csr.json
    {
        "CN": "kube-apiserver-etcd-client",
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -289,13 +268,13 @@ $ mkdir k8s && cd k8s/
            "10.10.1.1",
            "127.0.0.1",
            "localhost",
-           `# 完整列表 kubernetes、kubernetes.default、kubernetes.default.svc、 kubernetes.default.svc.cluster、kubernetes.default.svc.cluster.local ，不知道用 * 代替行不行`
-           "kubernetes*"
+           "kubernetes",
+           "kubernetes.default",
+           "kubernetes.default.svc",
+           "kubernetes.default.svc.cluster",
+           "kubernetes.default.svc.cluster.local"
        ],
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -310,10 +289,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > apiserver-kubelet-client-csr.json
    {
        "CN": "kube-apiserver-kubelet-client",
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -360,10 +336,7 @@ $ mkdir k8s && cd k8s/
    $ cat <<EOF > front-proxy-client-csr.json
    {
        "CN": "front-proxy-client",
-       "key": {
-           "algo": "rsa",
-           "size": 2048
-       },
+       "key": { "algo": "rsa", "size": 2048 },
        "names": [
            {
                "C": "CN",
@@ -405,6 +378,112 @@ $ mkdir k8s && cd k8s/
 $ cd ..
 $ sudo mkdir -p /etc/kubernetes
 $ sudo ln -sf $(pwd)/k8s /etc/kubernetes/pki
+```
+
+## 生成用户（客户端）配置文件
+
+### 生成各个用户的证书
+
+```shell
+$ mkdir client && cd client
+$ cat <<EOF > admin-csr.json
+{
+    "CN": "kubernetes-admin",
+    "key": { "algo": "rsa", "size": 2048 },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "YunNan",
+            "L": "KunMing",
+            "O": "system:masters"
+        }
+    ]
+}
+EOF
+
+$ cat <<EOF > kubelet-csr.json
+{
+    "CN": "system:node:local",`# 格式为"system:node:<nodeName>",<nodeName> 的值 必须 与 kubelet 向 apiserver 注册时提供的节点名称的值完全匹配`
+    "key": { "algo": "rsa", "size": 2048 },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "YunNan",
+            "L": "KunMing",
+            "O": "system:nodes"
+        }
+    ]
+}
+EOF
+
+$ cat <<EOF > kube-proxy-csr.json
+{
+    "CN": "system:kube-proxy",`# 格式为"system:node:<nodeName>",<nodeName> 的值 必须 与 kubelet 向 apiserver 注册时提供的节点名称的值完全匹配`
+    "key": { "algo": "rsa", "size": 2048 },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "YunNan",
+            "L": "KunMing",
+            "O": "system:nodes"
+        }
+    ]
+}
+EOF
+
+$ cat <<EOF > controller-manager-csr.json
+{
+    "CN": "system:kube-controller-manager",
+    "key": { "algo": "rsa", "size": 2048 },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "YunNan",
+            "L": "KunMing"
+        }
+    ]
+}
+EOF
+
+$ cat <<EOF > scheduler-csr.json
+{
+    "CN": "system:kube-scheduler",
+    "key": { "algo": "rsa", "size": 2048 },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "YunNan",
+            "L": "KunMing"
+        }
+    ]
+}
+EOF
+
+$ for item in 'admin' 'kubelet' 'kube-proxy' 'controller-manager' 'scheduler'
+do
+  cfssl gencert \
+      -ca ../ca.crt `# kubernetes-front-proxy-ca`\
+      -ca-key ../ca.key `# kubernetes-front-proxy-ca对应的私钥`\
+      -config ../../cfssl-config.json  `# cfssl配置文件`\
+      -profile client \
+      "$item"-csr.json \
+      | cfssljson -bare $item
+done
+```
+
+### 生成配置文件
+
+```shell
+$ for item in 'admin' 'kubelet' 'kube-proxy' 'controller-manager' 'scheduler'
+do
+  touch $item.conf
+  KUBECONFIG=$item.conf kubectl config set-cluster local-k8s --server=https://local.laeni.cn:6443 --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+  KUBECONFIG=$item.conf kubectl config set-credentials local-k8s --client-key /etc/kubernetes/pki/client/"$item"-key.pem --client-certificate /etc/kubernetes/pki/client/"$item".pem --embed-certs
+  KUBECONFIG=$item.conf kubectl config set-context local-k8s --cluster local-k8s --user local-k8s
+  KUBECONFIG=$item.conf kubectl config use-context local-k8s
+  # 链接到 k8s 文档推荐的位置，以便其他人寻找
+  sudo ln -s $(pwd)/$item.conf /etc/kubernetes/
+done
 ```
 
 

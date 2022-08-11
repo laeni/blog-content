@@ -1,0 +1,1 @@
+- 如果你需要访问其他人创建的集群，请参阅 [共享集群接入文档](https://kubernetes.io/zh-cn/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).

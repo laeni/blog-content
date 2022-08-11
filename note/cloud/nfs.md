@@ -107,20 +107,29 @@ $ sudo mount -t nfs -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,
    mklink /d C:\Users\xx\Desktop\NFS \\192.168.122.1\data\nfs-data\vm-win10
    ```
 
-> Windows挂载后可能没有权限写入，如果没有权限，首先要检查NFS服务器文件权限设置，需要将挂载文件夹设置为`777`或者设置为`nogroup`用户组和`nobody`用户（Ubuntu测试，设置为`777`后随笔通过Windows写入文件之后查看用户信息即可得到）。
+> 1. Windows挂载后可能没有权限写入，如果没有权限，首先要检查NFS服务器文件权限设置，需要将挂载文件夹设置为`777`或者设置为`nogroup`用户组和`nobody`用户（Ubuntu测试，设置为`777`后随笔通过Windows写入文件之后查看用户信息即可得到）。
 >
-> 如果还是不行，可能需要添加以下注册表：
+>    如果还是不行，可能需要添加以下注册表：
 >
-> ```
-> Windows Registry Editor Version 5.00
-> 
-> [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ClientForNFS\CurrentVersion\Default]
-> "AnonymousUid"=hex(b):00,00,00,00,00,00,00,00
-> "AnonymousGid"=hex(b):00,00,00,00,00,00,00,00
-> 
-> [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ClientForNFS\CurrentVersion\Default\RegNotify]
-> "Default"=dword:00000000
-> ```
+>    ```
+>    Windows Registry Editor Version 5.00
+>    
+>    [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ClientForNFS\CurrentVersion\Default]
+>    "AnonymousUid"=hex(b):00,00,00,00,00,00,00,00
+>    "AnonymousGid"=hex(b):00,00,00,00,00,00,00,00
+>    
+>    [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ClientForNFS\CurrentVersion\Default\RegNotify]
+>    "Default"=dword:00000000
+>    ```
 >
-> 将上述内容写入`.reg`后缀的文本文件中双击即可导入，上述注册表的意思是设置默认用户的用户ID和组ID为0，Linux中0表示root用户。
+>    将上述内容写入`.reg`后缀的文本文件中双击即可导入，上述注册表的意思是设置默认用户的用户ID和组ID为0，Linux中0表示root用户。
+>
+> 2. 解决目前（Win10）挂载NFS后文件中文名显示乱码问题
+>
+>    乱码主要原因是微软NFS协议不支持UTF-8的问题，导致文件乱码，NAS中文件管理器显示正常。目前WIN10中已含有一个Beta设置，支持全局 UTF-8，修改后即可正常显示，步骤如下：
+>
+>    1. 按下Win+R，输入 intl.cpl，点击确定
+>    2. 切换tab 进入"管理"中
+>    3. 点击更改系统区域设置
+>    4. 勾选Beta版，点击确定，重启后即可
 

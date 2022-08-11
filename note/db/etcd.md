@@ -124,21 +124,25 @@ etcd grpc-proxy
 
 #### 安全 | Security
 
+##### 客户端到服务器通信
+
+`--cert-file=<path>`：服务器的 TLS 证书。设置此选项后，客户端可以使用 HTTPS 进行连接。
+
+`--key-file=<path>`：服务器证书的密钥。必须未加密。
+
+`--client-cert-auth`：是否启用客户端证书身份验证。当启用时，etcd（服务器） 将检查客户端提供的证书是否是由受信任的 CA 签名的，未提供有效客户端证书的请求将失败。如果启用了[身份验证](https://etcd.io/docs/v3.5/op-guide/authentication/)，则证书将为“公用名”字段提供的用户名提供凭据。
+
+`--trusted-ca-file=<path>`：受信任的证书颁发机构。用于验证客户端证书的 CA，即配置颁发客户端证书的CA。
+
+---
+
+`--client-crl-file`：客户端证书吊销列表文件的路径。| Path to the client certificate revocation list file.
+`--client-cert-allowed-hostname`：允许用于客户端证书身份验证的 TLS 主机名。| Allowed TLS hostname for client cert authentication.
+`--auto-tls`：是否使用自动生成的自签名证书与客户端建立 TLS 连接，默认为`false`。| Client TLS using generated certificates.
+
+##### **对等（服务器到服务器/群集）通信**
+
 ```sh
---cert-file ''
-  客户端服务器 TLS 证书文件的路径。| Path to the client server TLS cert file.
---key-file ''
-  客户端服务器 TLS 密钥文件的路径。| Path to the client server TLS key file.
---client-cert-auth 'false'
-  启用客户端证书身份验证。| Enable client cert authentication.
---client-crl-file ''
-  客户端证书吊销列表文件的路径。| Path to the client certificate revocation list file.
---client-cert-allowed-hostname ''
-  允许用于客户端证书身份验证的 TLS 主机名。| Allowed TLS hostname for client cert authentication.
---trusted-ca-file ''
-  客户端服务器 TLS 可信 CA 证书文件的路径。| Path to the client server TLS trusted CA cert file.
---auto-tls 'false'
-  使用生成的证书的客户端 TLS。| Client TLS using generated certificates.
 --peer-cert-file ''
   对等服务器 TLS 证书文件的路径。| Path to the peer server TLS cert file.
 --peer-key-file ''
@@ -274,6 +278,8 @@ etcdctl 使用实例请参考[示例](#示例)
 
 ## 安装
 
+<http://play.etcd.io/install>提供图形化方式生成安装etcd所需的命令，包括证书生成，很适合入门。
+
 ### 集群的“多数”与“容错”
 
 多数(Majority)：多数是为了仲裁时投票表决的成员数。值为：(节点数 / 2) + 1
@@ -306,8 +312,8 @@ $ docker run \
   -p 2380:2380 \
   -v /etc/localtime:/etc/localtime \
   --mount type=bind,source=/tmp/etcd-data.tmp,destination=/etcd-data \
-  --name etcd-gcr-v3.5.1 \
-  quay.io/coreos/etcd:v3.5.1 \
+  --name etcd-gcr-v3.5.4 \
+  quay.io/coreos/etcd:v3.5.4 \
   /usr/local/bin/etcd \
   --name s1 \
   --data-dir /etcd-data \
@@ -374,17 +380,17 @@ $ sudo rm -rf ${ETCD_DATA} && mkdir -p ${ETCD_DATA} && \
   --ip ${THIS_IP} \
   -v /etc/localtime:/etc/localtime \
   --mount type=bind,source=${ETCD_DATA},destination=/etcd-data \
-  quay.io/coreos/etcd:v3.5.1 \
+  quay.io/coreos/etcd:v3.5.4 \
   /usr/local/bin/etcd \
     --name ${THIS_NAME} \
     --data-dir /etcd-data \
-    --initial-advertise-peer-urls http://${THIS_IP}:2380 \
+    --listen-client-urls http://${THIS_IP}:2379 \
     --listen-peer-urls http://${THIS_IP}:2380 \
     --advertise-client-urls http://${THIS_IP}:2379 \
-    --listen-client-urls http://${THIS_IP}:2379 \
+    --initial-advertise-peer-urls http://${THIS_IP}:2380 \
     --initial-cluster ${CLUSTER} \
-	--initial-cluster-state ${CLUSTER_STATE} \
 	--initial-cluster-token ${TOKEN} \
+	--initial-cluster-state ${CLUSTER_STATE} \
     --log-level info \
     --logger zap \
     --log-outputs stderr
@@ -411,6 +417,64 @@ ENDPOINTS=$HOST_1:2379,$HOST_2:2379,$HOST_3:2379
 
 # 列出集群列表（如果此时能看到刚刚添加的三个节点且所有节点日志输出正常则说明集群搭建成功）
 etcdctl --endpoints=$ENDPOINTS member list
+```
+
+### 适用于k8s的安装
+
+Etcd相关证书生成清参考[生成K8s所需的证书和密钥](/note/k8s/gen-k8s-cert)文档。
+
+#### 部署Etcd
+
+启动Etcd服务.
+
+```shell
+$ cat <<EOF > start.sh
+PWD=\$(pwd)
+docker stop etcd-tls
+docker rm etcd-tls
+docker run \\
+  -d \\
+  --restart=always \\
+  --name etcd-tls \\
+  -p 2379:2379 \\
+  -p 2380:2380 \\
+  -v /etc/localtime:/etc/localtime \\
+  --mount type=bind,source=$PWD/etcd-data,destination=/etcd-data \\
+  -v $PWD/cert:/cert \\
+  quay.io/coreos/etcd:v3.5.4 \\
+  /usr/local/bin/etcd \\
+  --name etcd-0 \\
+  --data-dir /etcd-data \\
+  --listen-client-urls https://0.0.0.0:2379 \\
+  --listen-peer-urls https://0.0.0.0:2380 \\
+  --advertise-client-urls https://0.0.0.0:2379 \\
+  --initial-advertise-peer-urls https://0.0.0.0:2380 \\
+  --initial-cluster etcd-0=https://0.0.0.0:2380 \\
+  --cert-file=cert/server.crt \\
+  --key-file=/cert/server.key \\
+  --trusted-ca-file=/cert/ca.crt \\
+  --client-cert-auth \`# 启用客户端证书身份验证，启用后客户端连接时必须提供客户端证书\`\\
+  --peer-cert-file=/cert/peer.crt \\
+  --peer-key-file=/cert/peer.key \\
+  --peer-trusted-ca-file=/cert/ca.crt \\
+  --log-level info \\
+  --logger zap \\
+  --log-outputs stderr
+EOF
+$ chmod +x start.sh
+$ ./start.sh
+```
+
+#### 验证
+
+```shell
+ETCDCTL_API=3
+etcdctl \
+--cacert /etc/kubernetes/pki/etcd/ca.crt `# CA.用于验证服务端证书，服务端使用的证书已经捆绑了该证书，所以这里还可以使用根CA（因为该证书是根CA签发的）；如果计算机已经信任了根CA，这里还可以省略`\
+--cert /etc/kubernetes/pki/etcd/server.pem \
+--key /etc/kubernetes/pki/etcd/server.key \
+--endpoints https://127.0.0.1:2379 \
+endpoint health --write-out=table
 ```
 
 ## 示例（etcdctl）
@@ -589,14 +653,14 @@ $ sudo rm -rf ${ETCD_DATA} && mkdir -p ${ETCD_DATA} && \
   --ip ${THIS_IP} \
   -v /etc/localtime:/etc/localtime \
   --mount type=bind,source=${ETCD_DATA},destination=/etcd-data \
-  quay.io/coreos/etcd:v3.5.1 \
+  quay.io/coreos/etcd:v3.5.4 \
   /usr/local/bin/etcd \
     --name ${THIS_NAME} \
     --data-dir /etcd-data \
-    --initial-advertise-peer-urls http://${THIS_IP}:2380 \
+    --listen-client-urls http://${THIS_IP}:2379 \
     --listen-peer-urls http://${THIS_IP}:2380 \
     --advertise-client-urls http://${THIS_IP}:2379 \
-    --listen-client-urls http://${THIS_IP}:2379 \
+    --initial-advertise-peer-urls http://${THIS_IP}:2380 \
     --initial-cluster ${CLUSTER} \
 	--initial-cluster-state ${CLUSTER_STATE} \
 	--initial-cluster-token ${TOKEN} \
@@ -605,11 +669,13 @@ $ sudo rm -rf ${ETCD_DATA} && mkdir -p ${ETCD_DATA} && \
     --log-outputs stderr
 ```
 
-
-
 ## [认证](https://etcd.io/docs/v3.5/demo/#auth)
 
-`auth`, `user`,`role`用于身份验证
+启用认证。启用认证前需要将在用的用户和用户组创建出来并授权好，否则启动授权后会导致无权限用户无法进行操作。
+
+> 1. 使用证书进行验证的用户（如k8s），用户名为客户端证书的`CN`名。
+> 2. 启用认证必须要先创建`root`用户，否则无法启用，因为没有`root`用户启用后可能导致无权限进行任何配置。
+> 3. 创建`root`用户时必须要求拥有`root`用户组，所以要先创建用户组（实际上使用`etcdctl`直接创建`root`用户时会自动创建`root`用户组并打印相关警告）。
 
 ```sh
 export ETCDCTL_API=3
@@ -647,8 +713,6 @@ etcdctl --endpoints=${ENDPOINTS} --user=user0:123 get foo1
 ### 备份 etcd 集群（快照）
 
 etcdctl 提供了`snapshot`创建备份的命令。有关详细信息，请参阅[备份](https://etcd.io/docs/v3.5/op-guide/recovery/#snapshotting-the-keyspace)。
-
-
 
 ## 注意事项
 

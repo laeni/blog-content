@@ -1,5 +1,5 @@
 ---
-title: Linux常用操作（仅备案）
+title: Linux中一些操作流程及原理（仅备案）
 tags: 'Linux常用操作'
 author: Laeni
 date: '2022-07-28'
@@ -39,6 +39,33 @@ updated: '2022-07-28'
    注意尽量不要将其关闭，甚至是禁用，因为禁用后可能导致网络出现问题（我有一次将云服务器的该服务禁用掉，连阿里云救援模式也没用，差点就重装系统了）。
 
 
+
+## Liunx目录规范
+
+```shell
+/
+├── boot
+├── cdrom
+├── data
+├── dev
+├── etc
+├── home
+│   └── <user_name>
+│       ├── .config
+│       │   └── systemd/user/ # 用户级别的 service 定义，使用`systemctl --user status xxx.service`操作服务
+│       └── .local
+│           └── bin/  # 用户级别的可执行二进制软件
+├── media
+├── mnt
+├── opt
+├── proc
+├── run
+├── srv
+├── sys
+├── tmp
+├── usr
+└── var
+```
 
 
 
