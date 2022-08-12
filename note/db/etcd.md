@@ -124,7 +124,7 @@ etcd grpc-proxy
 
 #### 安全 | Security
 
-##### 客户端到服务器通信
+##### 客户端和服务器通信
 
 `--cert-file=<path>`：服务器的 TLS 证书。设置此选项后，客户端可以使用 HTTPS 进行连接。
 
@@ -140,7 +140,7 @@ etcd grpc-proxy
 `--client-cert-allowed-hostname`：允许用于客户端证书身份验证的 TLS 主机名。| Allowed TLS hostname for client cert authentication.
 `--auto-tls`：是否使用自动生成的自签名证书与客户端建立 TLS 连接，默认为`false`。| Client TLS using generated certificates.
 
-##### **对等（服务器到服务器/群集）通信**
+##### **对等（服务器和服务器/群集）通信**
 
 ```sh
 --peer-cert-file ''
@@ -282,9 +282,9 @@ etcdctl 使用实例请参考[示例](#示例)
 
 ### 集群的“多数”与“容错”
 
-多数(Majority)：多数是为了仲裁时投票表决的成员数。值为：(节点数 / 2) + 1
+多数(Majority)：多数是为了仲裁时投票表决的成员数，值为：(节点数 / 2) + 1。
 
-容错(Failure Tolerance)：容错时集群内允许不可用（如宕机）节点的数量。
+容错(Failure Tolerance)：容错时集群内允许不可用（如宕机）节点的数量，值为：集群节点数 - 多数。
 
 以下为集群节点数与“多数”和“容错”的关系。
 
@@ -297,8 +297,8 @@ etcdctl 使用实例请参考[示例](#示例)
 |     5      |  3   |  2   |
 |     6      |  4   |  2   |
 |     7      |  4   |  3   |
-|     8      |  5   |  3   |
-|     9      |  5   |  4   |
+
+> 由于随着节点数的增加，"多数"也会增加，即仲裁成员数，这将会增加耗时，所以并不是节点数越多越好，一般为3个，要是对数据安全性很看重的可以为5个，但是最大不能超过7个。
 
 ### 单机安装（官方Docker示例）
 
@@ -673,6 +673,8 @@ $ sudo rm -rf ${ETCD_DATA} && mkdir -p ${ETCD_DATA} && \
 
 启用认证。启用认证前需要将在用的用户和用户组创建出来并授权好，否则启动授权后会导致无权限用户无法进行操作。
 
+etcd只能授权角色对指定数据的读写授权（root角色拥有完全控制权），然后再将用户添加到角色中，不能单独给用户授权。
+
 > 1. 使用证书进行验证的用户（如k8s），用户名为客户端证书的`CN`名。
 > 2. 启用认证必须要先创建`root`用户，否则无法启用，因为没有`root`用户启用后可能导致无权限进行任何配置。
 > 3. 创建`root`用户时必须要求拥有`root`用户组，所以要先创建用户组（实际上使用`etcdctl`直接创建`root`用户时会自动创建`root`用户组并打印相关警告）。
@@ -689,9 +691,16 @@ etcdctl --endpoints=${ENDPOINTS} user grant-role root root
 etcdctl --endpoints=${ENDPOINTS} user get root
 
 etcdctl --endpoints=${ENDPOINTS} role add role0
+etcdctl --endpoints=${ENDPOINTS} role add k8s
+# 授予 role0 角色读写 foo key
 etcdctl --endpoints=${ENDPOINTS} role grant-permission role0 readwrite foo
+# 授予 k8s 角色读写所有前缀为 /k8s-tmp 的 key
+etcdctl --endpoints=${ENDPOINTS} role grant-permission --prefix k8s readwrite /k8s
 etcdctl --endpoints=${ENDPOINTS} user add user0
+# 添加无密码用户，这种用户需要提供客户端证书才能登录
+etcdctl --endpoints=${ENDPOINTS} user add k8s-tmp --no-password
 etcdctl --endpoints=${ENDPOINTS} user grant-role user0 role0
+etcdctl --endpoints=${ENDPOINTS} user grant-role k8s-tmp k8s
 
 etcdctl --endpoints=${ENDPOINTS} auth enable
 # now all client requests go through auth
