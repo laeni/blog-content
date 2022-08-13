@@ -66,6 +66,7 @@ kube-apiserver \\
 --service-account-issuer=api `# 1.20+版本必须加的参数`\\
 --service-account-signing-key-file=/etc/kubernetes/pki/ca.key `# 1.20+版本必须加的参数`\\
 --etcd-servers=https://10.10.1.1:2379 `# etcd集群地址`\\
+--etcd-prefix=/registry-k8s-tmp `# 要在 etcd 中所有资源路径之前添加的前缀。默认值："/registry"。一般情况不用添加，但是由于只是临时测试，用的是共享etcd，所有为了避免冲突，加上一个前缀`\\
 --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt `# Etcd集群CA证书`\\
 --etcd-certfile=/etc/kubernetes/pki/etcd/server.crt `# Etcd集群服务端证书`\\
 --etcd-keyfile=/etc/kubernetes/pki/etcd/server.key `# Etcd集群服务端证书私钥`\\
