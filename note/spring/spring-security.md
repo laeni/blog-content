@@ -3,7 +3,7 @@ title: Spring Security
 tags: 'Spring Security, Spring'
 author: Laeni
 date: '2022-03-27'
-updated: '2022-03-28
+updated: '2022-03-28'
 ---
 
 ## 核心概念

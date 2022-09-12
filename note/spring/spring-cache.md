@@ -3,7 +3,7 @@ title: Spring Cache 入门
 tags: 'Spring Cache, Spring'
 author: Laeni
 date: '2021-08-27'
-updated: '2021-08-28
+updated: '2021-08-28'
 ---
 
 先从缓存中读取数据，如果没有再从慢速设备上读取实际数据（数据也会存入缓存）。缓存什么经常读取且不经常修改的数据、缓存昂贵（CPU/IO）的且对于相同的请求有相同的计算结果的数据。
