@@ -54,6 +54,10 @@ GOPATH允许多个目录，当有多个GOPATH时默认将`go get`获取的包存
 
 如：`https://goproxy.cn,https://mirrors.aliyun.com/goproxy,https://proxy.golang.com.cn,direct`
 
+### GOMAXPROCS
+
+设置 Go 携程中实际使用的线程数量，设置的值需要大于0，默认为CPU核心数（`runtime.NumCPU()`），设置后，程序可以通过`runtime.GOMAXPROCS(0)`获得。
+
 # CTL
 
 go命令行[官方文档](http://docscn.studygolang.com/cmd/go/)。
