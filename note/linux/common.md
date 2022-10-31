@@ -49,6 +49,8 @@ updated: '2022-07-28'
 ├── data
 ├── dev
 ├── etc
+│   └── systemd
+│       └── system/ # 系统级别的 service 定义
 ├── home
 │   └── <user_name>
 │       ├── .config

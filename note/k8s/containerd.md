@@ -1,27 +1,16 @@
-## 安装
+# 安装
 
 - 通过`nerdctl`直接安装全部工具
 
   参考命令如下：
 
   ```shell
-  $ mkdir -p /opt/containerd/nerdctl-full-0.22.0
-  $ cd /usr/local/bin/nerdctl-full-0.22.0
-  $ curl -LO https://github.com/containerd/nerdctl/releases/download/v0.22.0/nerdctl-full-0.22.0-linux-amd64.tar.gz
-  $ tar -zxf nerdctl-full-0.22.0-linux-amd64.tar.gz
-  
-  $ ln -s /opt/containerd/nerdctl-full-0.22.0/bin/* /usr/local/bin/
-  
-  $ mkdir -p /usr/local/lib/systemd/system
-  $ ln -s /opt/containerd/nerdctl-full-0.22.0/lib/systemd/system/* /usr/local/lib/systemd/system/
-  
-  $ mkdir -p /usr/local/libexec/cni/
-  $ ln -s /opt/containerd/nerdctl-full-0.22.0/libexec/cni/* /usr/local/libexec/cni/
-  
-  $ mkdir -p /usr/local/share/doc
-  $ ln -s /opt/containerd/nerdctl-full-0.22.0//share/doc/* /usr/local/share/doc/
+  $ curl -o  -L https://github.com/containerd/nerdctl/releases/download/v1.0.0/nerdctl-full-1.0.0-linux-amd64.tar.gz
+  $ tar Cxzvvf /usr/local nerdctl-full-1.0.0-linux-amd64.tar.gz
+  $ ln -s /usr/local/libexec/cni/* /usr/local/bin/
+  $ sudo systemctl enable --now containerd
   ```
-
+  
 - 依次手动安装
 
   适用于不需要安装全部工具的情况使用。
@@ -49,10 +38,9 @@
      从 https://github.com/containernetworking/plugins/releases 下载存档，然后解压到`/opt/cni/bin`
   
      ```shell
-     $ mkdir -p /opt/cni/bin
-     $ tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
+     $ tar Cxzvf /usr/local/bin cni-plugins-linux-amd64-v1.1.1.tgz
      ```
-
+  
   4. 安装nerdctl
   
      nerdctl是Docker命令兼容的工具， https://github.com/containerd/nerdctl/releases
@@ -134,3 +122,25 @@
 ## 生成默认配置文件
 
 由于[k8s文档](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#%E5%AE%B9%E5%99%A8%E8%BF%90%E8%A1%8C%E6%97%B6)要求我们先生成默认配置，以便后续用到，所以可以通过`containerd config default > /etc/containerd/config.toml`生成默认配置。
+
+# CTL
+
+有多个工具可以和`containerd`进行交互。
+
+## ctr
+
+// TODO
+
+## crictl
+
+专门针对 K8S 做优化，所以如果用 K8S 的话一般需要安装它（目前 kubeadm 必须使用它）。
+
+## nerdctl
+
+nerdctl 的目的是尽量让其 API 于 Docker 兼容，所以可以用它构建镜像（ctr 和 crictl 不提供镜像构建功能）。
+
+### 常见问题
+
+- `crictl`下载的镜像使用`ctr`和`nerdctl`无法找到
+
+  由于`ctr`支持命名空间，但其他两个不支持，而对于`ctr`来说，`nerdctl`和`ctr`（默认）的命名空间是`default`，而`crictl`的命名空间是`k8s.io`，所以`ctr`通过明确指定命名空间为`k8s.io`即可操作`crictl`下载的镜像。

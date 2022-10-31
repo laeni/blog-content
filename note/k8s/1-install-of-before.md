@@ -2,28 +2,23 @@
 
 ### [转发 IPv4 并让 iptables 看到桥接流量](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#%E8%BD%AC%E5%8F%91-ipv4-%E5%B9%B6%E8%AE%A9-iptables-%E7%9C%8B%E5%88%B0%E6%A1%A5%E6%8E%A5%E6%B5%81%E9%87%8F)
 
-通过运行 `lsmod | grep br_netfilter` 来验证 `br_netfilter` 模块是否已加载。
-
-若要显式加载此模块，请运行 `sudo modprobe br_netfilter`。
-
-为了让 Linux 节点的 iptables 能够正确查看桥接流量，请确认 `sysctl` 配置中的 `net.bridge.bridge-nf-call-iptables` 设置为 1。例如：
-
 ```bash
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+# 配置启动时自动加载 overlay 和 br_netfilter 模块
+# 通过运行 `lsmod | grep br_netfilter` 来验证 `br_netfilter` 模块是否已加载
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf # 配置文件名称可以随意，只要是 .conf 结尾即可
 overlay
 br_netfilter
 EOF
-
+# 马上加载模块而不重新启动
 sudo modprobe overlay
 sudo modprobe br_netfilter
 
-# 设置所需的 sysctl 参数，参数在重新启动后保持不变
+# 设置所需的 sysctl 参数，让 Linux 节点的 iptables 能够正确查看桥接流量
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
 EOF
-
 # 应用 sysctl 参数而不重新启动
 sudo sysctl --system
 ```

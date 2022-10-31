@@ -1,6 +1,8 @@
-## 安装Ubuntu桌面系统常用操作
+# 安装Ubuntu桌面系统常用操作
 
-### 安装
+以下操作仅适用于于个人使用习惯，包括一些个人常用但其他大部分人用不到的软件等。
+
+## 安装
 
 1. 选择最小安装。否则会安装很多不需要的东西，特别是游戏，还无法卸载。
 
@@ -8,7 +10,7 @@
 
 3. 联网后再安装。这样安装时会下载语言和自带的输入法等，否则输入法问题很麻烦。
 
-### 常用软件安装
+## 常用软件安装
 
 1. Startup Disk Creator
 
@@ -35,16 +37,70 @@
    ```shell
    $ sudo apt install wireguard # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
    ```
+
+   安装好后在备份区恢复`/etc/wireguard/wg0.conf`配置文件，然后创建“开机自动连接VPN并挂载NFS”脚本及服务：
+
+   ```sh
+   $ cat <<EOF | sudo tee /usr/local/bin/auto_start_wg_and_nfs.sh
+   #!/bin/sh
    
-4. 火焰截图
+   # 启动 WireGuard(VPN)
+   wg_status=-1
+   start_wg() {
+       wg-quick down wg0
+       wg-quick up wg0
+       wg_res=\$(ping 10.10.1.1 -c 1 | grep 'rtt min/avg/max/mdev')
+       if [ "\$wg_res" ];then
+           echo  "WireGuard 启动成功"
+           wg_status=0
+       fi
+   }
+   while true; do
+       start_wg
+       if [ \$wg_status = 0 ]; then
+           break
+       else
+         echo "WireGuard 启动失败，5s 后重试！"
+         sleep 5
+       fi
+   done
+   
+   # VPN 开启后挂载NFS
+   umount /home/laeni/Desktop/NFS/
+   mount -t nfs -o vers=3,nolock,proto=tcp,noresvport 10.6.1.2:/hupqoh95 /home/laeni/Desktop/NFS/
+   EOF
+   
+   $ cat <<EOF | sudo tee /etc/systemd/system/auto_start_wg_and_nfs.service
+   [Unit]
+   Description=自动启动VPN并挂载NFS
+   After=network.target default.target
+   
+   [Service]
+   ExecStart=/usr/local/bin/auto_start_wg_and_nfs.sh
+   
+   [Install]
+   WantedBy=default.target
+   EOF
+   
+   $ systemctl start auto_start_wg_and_nfs.service
+   $ systemctl enable auto_start_wg_and_nfs.service
+   ```
+
+4. 远程ssh登陆
+
+   ```sh
+   $ sudo apt-get install openssh-server
+   ```
+
+5. flameshot（火焰截图）
 
    应用商店(snap)
 
-5. Edge
+6. Edge
 
    官方下载安装包进行安装
 
-6. qqmusic
+7. qqmusic
 
    1. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
 
@@ -66,25 +122,23 @@
       修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
       修改后可能需要重启才生效
 
-7. dbeawer-ce
+8. dbeawer-ce
 
    [官网](https://dbeaver.io/download/)下载安装`Linux Debian package`包安装.
 
-8. draw.io
+9. draw.io
 
-   [github](https://github.com/jgraph/drawio-desktop/releases)下载安装
-
-9. WPS
+10. WPS
 
    [官网](https://www.wps.cn/product/wpslinux)下载安装
 
-10. Lens
+11. Lens
 
-11. MarkText
+    参考[官网](https://docs.k8slens.dev/getting-started/install-lens/)
 
-12. Notepad++
+12. MarkText
 
-    应用商店(snap)
+    一般用Typore
 
 13. curl
 
@@ -94,46 +148,91 @@
 
 14. 安装KVM并安装win10
 
-    1. 安装KVM
+    安装KVM
 
-       ```shell
-       # 加上 --no-install-recommends 参数不会安装 virt-viewer 之类的包，这些包在非图形化界面用不到
-       sudo apt install \
-       qemu-kvm \     # 一个提供硬件仿真的开源仿真器和虚拟化包，自动安装libvirt-clients – 一组客户端的库和API，用于从命令行管理和控制虚拟机和管理程序
-       virtinst \     # 一套为置备和修改虚拟机提供的命令行工具
-       virt-manager \ # 一款通过 libvirt 守护进程，基于 QT 的图形界面的虚拟机管理工具,自动安装 libvirt-daemon-system – 为运行 libvirt 进程提供必要配置文件的工具
-       bridge-utils   # 一套用于创建和管理桥接设备的工具
-       ```
+    ```shell
+    # 如果加上 --no-install-recommends 参数不会安装 virt-viewer 之类的包，这些包在非图形化界面用不到
+    $ sudo apt install \
+    qemu-kvm `# 一个提供硬件仿真的开源仿真器和虚拟化包，自动安装libvirt-clients – 一组客户端的库和API，用于从命令行管理和控制虚拟机和管理程序`\
+    virtinst `# 一套为置备和修改虚拟机提供的命令行工具`\
+    virt-manager `# 一款通过 libvirt 守护进程，基于 QT 的图形界面的虚拟机管理工具,自动安装 libvirt-daemon-system – 为运行 libvirt 进程提供必要配置文件的工具`\
+    bridge-utils `# 一套用于创建和管理桥接设备的工具`
+    ```
 
-       安装后可以通过`sudo systemctl status libvirtd`查看虚拟化守护进程是否已经运行，如果没有则可以启动`sudo systemctl enable --now libvirtd && sudo systemctl start libvirtd`
+    安装后可以通过`sudo systemctl status libvirtd`查看虚拟化守护进程是否已经运行，如果没有则可以启动`sudo systemctl enable --now libvirtd`
 
-       另外，请将当前登录用户加入 kvm 和 libvirt 用户组，以便能够创建和管理虚拟机。
+    另外，请将当前登录用户加入 kvm 和 libvirt 用户组，以便能够创建和管理虚拟机。
 
-       ```
-       $ sudo usermod -aG kvm $USER
-       $ sudo usermod -aG libvirt $USER
-       ```
+    ```
+    $ sudo usermod -aG kvm $USER
+    $ sudo usermod -aG libvirt $USER
+    ```
 
-       安装安成后需要重启系统，否则会出现无法连接的情况（可能由于权限不够，因为上面加入的用户还未生效）
-
-    2. 创建网桥
-
-       KVM 会自己创建一个 virbr0 的桥接网络，但是这个是一个 NAT 的网络，没有办法跟局域网内的其他主机进行通信，所以还是自己建一个桥接网络。
-
-       参考： https://www.leyeah.com/article/kvm-installation-handbook-ubuntu-668480
+    安装安成后需要重启系统，否则会出现无法连接的情况（可能由于权限不够，因为上面加入的用户还未生效）
 
 15. containerd
 
-16. jenv
+    参见K8s相关笔记
 
-    java多版本切换工具，还可以添加本地jdk进行切换。
+16. 常见开发工具
 
-    gvm - golang多版本切换
+    1. [jenv](https://github.com/jenv/jenv) - java多版本切换工具，还可以添加本地jdk进行切换。
 
-    n - nodejs多版本切换
+    2. [gvm](https://github.com/moovweb/gvm) - golang多版本切换
+
+       ```sh
+       $ sudo apt install -y bison gcc make
+       $ bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+       ```
+
+    3. n - nodejs多版本切换
+
+17. 状态栏显示网速
+
+    在Ubuntu22.04下暂不能通过`apt`安装，所以直接从源码安装：
+
+    ```sh
+    $ git clone https://github.com/fossfreedom/indicator-sysmonitor.git
+    $ cd indicator-sysmonitor
+    $ pip3 install psutil
+    $ sudo make install
+    $ cd ..
+    $ rm -rf indicator-sysmonitor
+    $ nohup indicator-sysmonitor &
+    ```
+
+    > 安装后，通过鼠标打开设置修改监控属性以及开机启动。
+
+18. 安装sz/rz
+
+    ```sh
+    # sz/rz 工具本身
+    $ sudo apt install lrzsz
+    # 自带的ssh不支持，所以需要安装zssh
+    $ sudo apt install zssh
+    # 使用zssh登陆远程(和ssh用法一样)
+    $ zssh root@ip -p port
+    ```
+
+    使用：
+
+    ```sh
+    # 下载文件(远程sz，则本地rz)
+    $ sz remote.file
+    ## 进入等待后按ctrl + @键进入zssh终端，输入 rz 即可接收文件（windows terminal/tmux不支持。建议使用cygwin64）
+    $ rz
+    
+    # 上传文件(本地rz，则远程sz)
+    $ rz
+    ## 进入等待后按ctrl+@，进入zssh终端，输入 sz <filename> 即可接收文件
+    $ sz local.file
+    ```
+
+
 
 ## Ubuntu下常见问题解决
 
 1. IDEA无法输入中文
 
    参考[网上文章](https://blog.csdn.net/weixin_43627118/article/details/120663214)，在Idea启动配置文件添加一行`-Drecreate.x11.input.method=true`
+

@@ -1,18 +1,26 @@
---二进制安装k8s--
+---
+title: '二进制安装k8s'
+author: 'Laeni'
+tags: 'k8s'
+date: '2022-10-29'
+updated: '2022-10-29'
+---
 
+## 前提条件
 
+1. [安装容器运行时](./containerd)
 
 安装前，需要先安装Etcd，参见[Etcd 帮助文档](/note/db/etcd)。
 
 ## 规划
 
-| 名称        | Value                 | 备注                      |
-| ----------- | --------------------- | ------------------------- |
-| Etcd地址    | http://10.10.1.1:2379 |                           |
-| Node(单机)  | 10.0.0.1              |                           |
-| Service网段 | 10.1.0.0/24           |                           |
-| Pod网段     | 10.2.0.0/24           |                           |
-| 集群DNS     | 10.1.0.2              | 必须为Service网段中的一个 |
+| 名称                                   | Value          | 备注                      |
+| -------------------------------------- | -------------- | ------------------------- |
+| Etcd地址                               | 10.10.1.1:2379 |                           |
+| Node(单机)                             | 10.0.0.1       |                           |
+| Service网段 - service-cluster-ip-range | 10.1.0.0/16    |                           |
+| Pod网段 - clusterCIDR                  | 10.2.0.0/16    |                           |
+| 集群DNS                                | 10.1.0.2       | 必须为Service网段中的一个 |
 
 ## 生成证书及用户配置文件
 
@@ -49,9 +57,9 @@ $ cat <<EOF > start-kube-apiserver.sh
 kube-apiserver \\
 --bind-address=0.0.0.0 `# 监听地址,这里监听全部地址，如果需要更高安全性可以只监听maste节点ip地址`\\
 --secure-port=6443 `# https安全端口`\\
---advertise-address=10.0.0.1 `# 集群通告地址，即告诉其他客户端自己的地址，实际上可以不一定用该地址`\\
+--advertise-address=10.10.1.2 `# 集群通告地址，即告诉其他客户端自己的地址，实际上可以不一定用该地址`\\
 --allow-privileged=true `# 是否启用授权`\\
---service-cluster-ip-range=10.1.0.0/24 `# Service虚拟IP地址段`\\
+--service-cluster-ip-range=10.1.0.0/16 `# Service虚拟IP地址段`\\
 --enable-admission-plugins=NodeRestriction `# 准入控制模块`\\
 --authorization-mode=RBAC,Node `# 认证授权，启用RBAC授权和节点自管理`\\
 --enable-bootstrap-token-auth=true `# 是否启用TLS bootstrap机制`\\
@@ -66,10 +74,10 @@ kube-apiserver \\
 --service-account-issuer=api `# 1.20+版本必须加的参数`\\
 --service-account-signing-key-file=/etc/kubernetes/pki/ca.key `# 1.20+版本必须加的参数`\\
 --etcd-servers=https://10.10.1.1:2379 `# etcd集群地址`\\
---etcd-prefix=/registry-k8s-tmp `# 要在 etcd 中所有资源路径之前添加的前缀。默认值："/registry"。一般情况不用添加，但是由于只是临时测试，用的是共享etcd，所有为了避免冲突，加上一个前缀`\\
+--etcd-prefix=/k8s/registry-ubuntu `# 要在 etcd 中所有资源路径之前添加的前缀。默认值："/registry"。一般情况不用添加，但是由于只是临时测试，用的是共享etcd，所有为了避免冲突，加上一个前缀`\\
 --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt `# Etcd集群CA证书`\\
---etcd-certfile=/etc/kubernetes/pki/etcd/server.crt `# Etcd集群服务端证书`\\
---etcd-keyfile=/etc/kubernetes/pki/etcd/server.key `# Etcd集群服务端证书私钥`\\
+--etcd-certfile=/etc/kubernetes/pki/etcd/client-k8s-pc-ubuntu.crt `# Etcd集群认证证书`\\
+--etcd-keyfile=/etc/kubernetes/pki/etcd/client-k8s-pc-ubuntu.key `# Etcd集群认证证书私钥`\\
 --requestheader-client-ca-file=/etc/kubernetes/pki/ca.crt `# 启动聚合层相关配置`\\
 --proxy-client-cert-file=/etc/kubernetes/pki/apiserver.crt `# 启动聚合层相关配置`\\
 --proxy-client-key-file=/etc/kubernetes/pki/apiserver.key `# 启动聚合层相关配置`\\
@@ -109,7 +117,7 @@ kube-controller-manager \\
 --kubeconfig=/etc/kubernetes/controller-manager.conf `# 连接apiserver配置文件`\\
 --bind-address=0.0.0.0 `# 监听--secure-port端口的IP地址(default 0.0.0.0)`\\
 --allocate-node-cidrs=true `# 是否应在云提供商上分配和设置Pod的CIDR`\\
---cluster-cidr=10.2.0.0/24 `# 集群中Pod的CIDR范围，要求--allocate-node-cidrs为true`\\
+--cluster-cidr=10.2.0.0/16 `# 集群中Pod的CIDR范围，要求--allocate-node-cidrs为true`\\
 --service-cluster-ip-range=10.0.0.0/24 `# 集群service的cidr范围，需要--allocate-node-cidrs设置为true`\\
 --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt `# 用于颁发集群范围的证书。 如果指定，则不能指定更具体的 --cluster-signing-* 标志`\\
 --cluster-signing-key-file=/etc/kubernetes/pki/ca.key  `# --cluster-signing-cert-file CA证书对应密钥`\\
@@ -163,6 +171,8 @@ $ kubectl create clusterrolebinding kubelet-bootstrap \
 ```
 
 ### 部署kubelet
+
+kubelet的部署方式有两种，一种是直接生成kubelet使用的证书，并根据该证书创建对应的 kubeconfig 文件；另一种是使用 Bootstrap Kubeconfig 配置加入集群，然后由集群自动签发证书。由于第二种方式用于认证的信息为一个token，相比第一种直接使用证书的情况安全性有所降低，所以第二种情况还需要明确在集群中批准才能真正加入成功。
 
 #### 生成kubelet初次加入集群引导kubeconfig文件
 
@@ -240,7 +250,7 @@ $ cat << EOF > start-kubelet.sh
 kubelet \\
 --hostname-override=local `# 部署kubelet节点的hostname名称，即对应的客户端证书的CN为"system:node:local"`\\
 --kubeconfig=/etc/kubernetes/kubelet.conf `# 用于访问 apiserver 的配置，初次启动时，如果 --bootstrap-kubeconfig 可用，则本选项对应的配置文件可以不存在或为空（会自动生成）`\\
---bootstrap-kubeconfig=/opt/kubernetes/cfg/bootstrap.conf `# 用于首次启动且 --kubeconfig 不可用时使用，即与 --kubeconfig 必须要用一个可用`\\
+--bootstrap-kubeconfig=/opt/kubernetes/cfg/bootstrap.conf `# 用于首次启动且 --kubeconfig 不可用时使用，即与 --kubeconfig 必须要有一个可用`\\
 --config=/opt/kubernetes/cfg/kubelet-config.yml \\
 --cert-dir=/etc/kubernetes/pki \\
 --container-runtime-endpoint=unix:///run/containerd/containerd.sock  \\
@@ -258,8 +268,6 @@ NAME                                                   AGE   SIGNERNAME         
 node-csr-KLFsUNn9eyQ_JaQjwgZmeokMm7JwwheNyHKSoPIROz0   38s   kubernetes.io/kube-apiserver-client-kubelet   kubelet-bootstrap   <none>              Pending
 $ kubectl certificate approve node-csr-KLFsUNn9eyQ_JaQjwgZmeokMm7JwwheNyHKSoPIROz0
 ```
-
-> 本实例暂未通过`--bootstrap-kubeconfig`的方式实验成功，估计是token用法不对，而是直接手动生成kubelet用户配置文件启动的。
 
 #### 验证节点是否成功加入
 
@@ -284,7 +292,7 @@ metricsBindAddress: 0.0.0.0:10249
 clientConnection:
   kubeconfig: /etc/kubernetes/kube-proxy.conf
 hostnameOverride: local # 如果非空，将使用此字符串而不是实际的主机名作为标识
-clusterCIDR: 10.2.0.0/24 # 集群中 Pod 的 CIDR 范围。配置后，从该范围之外发送到服务集群 IP 的流量被伪装，从 Pod 发送到外部 LoadBalancer IP 的流量将被重定向到相应的集群 IP。 对于双协议栈集群，接受一个逗号分隔的列表， 每个 IP 协议族（IPv4 和 IPv6）至少包含一个 CIDR。
+clusterCIDR: 10.2.0.0/16 # 集群中 Pod 的 CIDR 范围。配置后，从该范围之外发送到服务集群 IP 的流量被伪装，从 Pod 发送到外部 LoadBalancer IP 的流量将被重定向到相应的集群 IP。 对于双协议栈集群，接受一个逗号分隔的列表， 每个 IP 协议族（IPv4 和 IPv6）至少包含一个 CIDR。
 # mode: ipvs
 # ipvs:
 #   scheduler: "rr"
@@ -389,11 +397,16 @@ clusterrolebinding.rbac.authorization.k8s.io/system:kube-apiserver created
 ```shell
 # 查看污点
 $ kubectl --kubeconfig /etc/kubernetes/admin.conf describe nodes <node-name> | grep Taints
+Taints:             node.kubernetes.io/not-ready:NoSchedule
+
+# 删除污点（最后的'-'表示减去/删除的意思）
+$ kubectl --kubeconfig /etc/kubernetes/admin.conf taint node local node.kubernetes.io/not-ready:NoSchedule-
+node/local untainted
 ```
 
-
-
 ### 安装网络插件（calico）
+
+[官网](https://projectcalico.docs.tigera.io/getting-started/kubernetes/quickstart)
 
 下载部署文件
 
@@ -407,7 +420,7 @@ $ curl -LO https://docs.projectcalico.org/manifests/calico.yaml
 vim +4434 calico.yaml
 ...
 - name: CALICO_IPV4POOL_CIDR
-  value: "10.2.0.0/24"
+  value: "10.2.0.0/16"
 ...
 ```
 
@@ -417,7 +430,7 @@ vim +4434 calico.yaml
 $ kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f calico.yaml
 ```
 
-
+> 暂未成功
 
 ## 参考
 

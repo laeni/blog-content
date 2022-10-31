@@ -8,6 +8,12 @@ updated: '2022-08-01'
 
 根据[PKI证书和要求](https://kubernetes.io/zh-cn/docs/setup/best-practices/certificates/#configure-certificates-manually)创建符合K8s集群所需要的全部证书，目的是为了熟悉证书生成过程并且了解各个证书的作用。这里先生成根CA，然后再通过根CA创建K8s中需要的几个CA，最后通过这些CA来签发对应的证书。
 
+最终的文件结构：
+
+```
+
+```
+
 ## 生成根CA
 
 参见[cfssl工具帮助文档](/note/security/cfssl)创建根CA，创建根CA很简单，但是注意根CA的有效期一般比其他的要稍微长一点。在K8s中，实际上并不需要本根CA，但是如果存在的话，在某些时候可以简化使用，比如信任根CA后使用`etcdctl`时可以不指定`--cacert`选项。
@@ -20,12 +26,12 @@ $ mkdir k8s && cd k8s/
 
 ## 创建中间 CA
 
-从安全角度严格来讲，K8s需要`kubernetes-ca`,`etcd-ca`和`kubernetes-front-proxy-ca`三个中间CA，当前如果为i了简单则可以可以指创建一个中间CA或者直接使用根CA也是可以的。
+从安全角度严格来讲，K8s需要`kubernetes-ca`,`etcd-ca`和`kubernetes-front-proxy-ca`三个中间CA，当然如果为了简单则可以指创建一个中间CA或者直接使用根CA也是可以的。
 
 1. 创建`CSRJSON`配置文件
 
    ```shell
-   $ cat <<EOF > ca-csr.json
+   $ cat <<EOF | tee ca-csr.json
    {
      "CN": "kubernetes-ca",
      "key": { "algo": "rsa", "size": 2048 },
@@ -42,7 +48,7 @@ $ mkdir k8s && cd k8s/
    EOF
    
    $ mkdir -p etcd
-   $ cat <<EOF > etcd/ca-csr.json
+   $ cat <<EOF | tee etcd/ca-csr.json
    {
      "CN": "etcd-ca",
      "key": { "algo": "rsa", "size": 2048 },
@@ -58,7 +64,7 @@ $ mkdir k8s && cd k8s/
    }
    EOF
    
-   $ cat <<EOF > front-proxy-csr.json
+   $ cat <<EOF | tee front-proxy-csr.json
    {
      "CN": "kubernetes-front-proxy-ca",
      "key": { "algo": "rsa", "size": 2048 },
@@ -68,7 +74,7 @@ $ mkdir k8s && cd k8s/
          "ST": "YunNan",
          "L":  "KunMing",
          "O":  "system",
-         "OU": "Etcd CA"
+         "OU": "Front Proxy CA"
        }
      ]
    }
@@ -80,7 +86,7 @@ $ mkdir k8s && cd k8s/
    ```shell
    $ cfssl genkey ca-csr.json | cfssljson -bare ca
    $ cfssl genkey etcd/ca-csr.json | cfssljson -bare etcd/ca
-   $ cfssl genkey front-proxy-csr.json | cfssljson -bare front-proxy
+   $ cfssl genkey front-proxy-csr.json | cfssljson -bare front-proxy-ca
    ```
 
    > 证书请求`.csr`文件中同时包含了公钥以及`CSRJSON`文件中的信息。
@@ -109,8 +115,8 @@ $ mkdir k8s && cd k8s/
      -ca-key ../ca-key.pem \
      -config ../cfssl-config.json \
      -profile ca \
-     front-proxy.csr \
-     | cfssljson -bare front-proxy
+     front-proxy-ca.csr \
+     | cfssljson -bare front-proxy-ca
    ```
 
    > 由于这些是中间CA，所以后续通过这些中间CA签发的证书都最好和对应的中间CA捆绑在一起使用，以便能直接通过根CA进行验证。
@@ -122,7 +128,7 @@ $ mkdir k8s && cd k8s/
    ```shell
    $ mv ca.pem ca.crt && mv ca-key.pem ca.key
    $ mv etcd/ca.pem etcd/ca.crt && mv etcd/ca-key.pem etcd/ca.key
-   $ mv front-proxy.pem front-proxy.crt && mv front-proxy-key.pem front-proxy.key
+   $ mv front-proxy.pem front-proxy-ca.crt && mv front-proxy-ca-key.pem front-proxy-ca.key
    ```
 
    至此，所有中间证书就全部生成完成，可以将不再使用的中间文件删除：
@@ -133,14 +139,14 @@ $ mkdir k8s && cd k8s/
 
 ## 创建其他证书
 
-一般情况，创建上上面三对中间CA即可，其他证书可以委托给`kubeadm`创建，但也可以全部手动创建好。
+一般情况，创建上面三对中间CA即可，其他证书可以委托给`kubeadm`创建，但也可以全部手动创建好。
 
 ### 创建ETCD相关证书
 
 1. 创建`CSRJSON`配置文件
 
    ```shell
-   $ cat <<EOF > etcd/server-csr.json
+   $ cat <<EOF | tee etcd/server-csr.json
    {
        "CN": "kube-etcd",
        "hosts": [
@@ -160,7 +166,7 @@ $ mkdir k8s && cd k8s/
    }
    EOF
    
-   $ cat <<EOF > etcd/peer-csr.json
+   $ cat <<EOF | tee etcd/peer-csr.json
    {
        "CN": "kube-etcd-peer",
        "hosts": [
@@ -180,7 +186,7 @@ $ mkdir k8s && cd k8s/
    }
    EOF
    
-   $ cat <<EOF > etcd/healthcheck-client-csr.json
+   $ cat <<EOF | tee etcd/healthcheck-client-csr.json
    {
        "CN": "kube-etcd-healthcheck-client",
        "key": { "algo": "rsa", "size": 2048 },
@@ -195,7 +201,7 @@ $ mkdir k8s && cd k8s/
    }
    EOF
    
-   $ cat <<EOF > apiserver-etcd-client-csr.json
+   $ cat <<EOF | tee apiserver-etcd-client-csr.json
    {
        "CN": "kube-apiserver-etcd-client",
        "key": { "algo": "rsa", "size": 2048 },
@@ -260,19 +266,20 @@ $ mkdir k8s && cd k8s/
 1. 创建`CSRJSON`配置文件
 
    ```shell
-   $ cat <<EOF > apiserver-csr.json
+   $ cat <<EOF | tee apiserver-csr.json
    {
        "CN": "kube-apiserver",
        "hosts": [
-           "*.laeni.cn",
-           "10.10.1.1",
-           "127.0.0.1",
-           "localhost",
            "kubernetes",
            "kubernetes.default",
            "kubernetes.default.svc",
-           "kubernetes.default.svc.cluster",
-           "kubernetes.default.svc.cluster.local"
+           "kubernetes.default.svc.cluster.local",
+           "*.laeni.cn",
+           "`一般需要将主机名加上`",
+           "10.10.1.1",
+           "10.10.1.2",
+           "127.0.0.1",
+           "localhost"
        ],
        "key": { "algo": "rsa", "size": 2048 },
        "names": [
@@ -286,7 +293,7 @@ $ mkdir k8s && cd k8s/
    }
    EOF
    
-   $ cat <<EOF > apiserver-kubelet-client-csr.json
+   $ cat <<EOF | tee apiserver-kubelet-client-csr.json
    {
        "CN": "kube-apiserver-kubelet-client",
        "key": { "algo": "rsa", "size": 2048 },
@@ -333,7 +340,7 @@ $ mkdir k8s && cd k8s/
 1. 创建`CSRJSON`配置文件
 
    ```shell
-   $ cat <<EOF > front-proxy-client-csr.json
+   $ cat <<EOF | tee front-proxy-client-csr.json
    {
        "CN": "front-proxy-client",
        "key": { "algo": "rsa", "size": 2048 },
@@ -352,8 +359,8 @@ $ mkdir k8s && cd k8s/
 
    ```shell
    $ cfssl gencert \
-     -ca front-proxy.crt `# kubernetes-front-proxy-ca`\
-     -ca-key front-proxy.key `# kubernetes-front-proxy-ca对应的私钥`\
+     -ca front-proxy-ca.crt `# kubernetes-front-proxy-ca`\
+     -ca-key front-proxy-ca.key `# kubernetes-front-proxy-ca对应的私钥`\
      -config ../cfssl-config.json  `# cfssl配置文件`\
      -profile client \
      front-proxy-client-csr.json \
@@ -386,7 +393,7 @@ $ sudo ln -sf $(pwd)/k8s /etc/kubernetes/pki
 
 ```shell
 $ mkdir client && cd client
-$ cat <<EOF > admin-csr.json
+$ cat <<EOF | tee admin-csr.json
 {
     "CN": "kubernetes-admin",
     "key": { "algo": "rsa", "size": 2048 },
@@ -401,7 +408,7 @@ $ cat <<EOF > admin-csr.json
 }
 EOF
 
-$ cat <<EOF > kubelet-csr.json
+$ cat <<EOF | tee kubelet-csr.json
 {
     "CN": "system:node:local",`# 格式为"system:node:<nodeName>",<nodeName> 的值 必须 与 kubelet 向 apiserver 注册时提供的节点名称的值完全匹配`
     "key": { "algo": "rsa", "size": 2048 },
@@ -416,7 +423,7 @@ $ cat <<EOF > kubelet-csr.json
 }
 EOF
 
-$ cat <<EOF > kube-proxy-csr.json
+$ cat <<EOF | tee kube-proxy-csr.json
 {
     "CN": "system:kube-proxy",`# 格式为"system:node:<nodeName>",<nodeName> 的值 必须 与 kubelet 向 apiserver 注册时提供的节点名称的值完全匹配`
     "key": { "algo": "rsa", "size": 2048 },
@@ -431,7 +438,7 @@ $ cat <<EOF > kube-proxy-csr.json
 }
 EOF
 
-$ cat <<EOF > controller-manager-csr.json
+$ cat <<EOF | tee controller-manager-csr.json
 {
     "CN": "system:kube-controller-manager",
     "key": { "algo": "rsa", "size": 2048 },
@@ -445,7 +452,7 @@ $ cat <<EOF > controller-manager-csr.json
 }
 EOF
 
-$ cat <<EOF > scheduler-csr.json
+$ cat <<EOF | tee scheduler-csr.json
 {
     "CN": "system:kube-scheduler",
     "key": { "algo": "rsa", "size": 2048 },
@@ -462,8 +469,8 @@ EOF
 $ for item in 'admin' 'kubelet' 'kube-proxy' 'controller-manager' 'scheduler'
 do
   cfssl gencert \
-      -ca ../ca.crt `# kubernetes-front-proxy-ca`\
-      -ca-key ../ca.key `# kubernetes-front-proxy-ca对应的私钥`\
+      -ca ../ca.crt `# kubernetes-ca`\
+      -ca-key ../ca.key `# kubernetes-ca对应的私钥`\
       -config ../../cfssl-config.json  `# cfssl配置文件`\
       -profile client \
       "$item"-csr.json \
@@ -477,10 +484,10 @@ done
 $ for item in 'admin' 'kubelet' 'kube-proxy' 'controller-manager' 'scheduler'
 do
   touch $item.conf
-  KUBECONFIG=$item.conf kubectl config set-cluster local-k8s --server=https://local.laeni.cn:6443 --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
-  KUBECONFIG=$item.conf kubectl config set-credentials local-k8s --client-key /etc/kubernetes/pki/client/"$item"-key.pem --client-certificate /etc/kubernetes/pki/client/"$item".pem --embed-certs
-  KUBECONFIG=$item.conf kubectl config set-context local-k8s --cluster local-k8s --user local-k8s
-  KUBECONFIG=$item.conf kubectl config use-context local-k8s
+  KUBECONFIG=$item.conf kubectl config set-cluster k8s-ubuntu --server=https://10.10.1.2:6443 --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+  KUBECONFIG=$item.conf kubectl config set-credentials k8s-ubuntu --client-key /etc/kubernetes/pki/client/"$item"-key.pem --client-certificate /etc/kubernetes/pki/client/"$item".pem --embed-certs
+  KUBECONFIG=$item.conf kubectl config set-context k8s-ubuntu --cluster k8s-ubuntu --user k8s-ubuntu
+  KUBECONFIG=$item.conf kubectl config use-context k8s-ubuntu
   # 链接到 k8s 文档推荐的位置，以便其他人寻找
   sudo ln -s $(pwd)/$item.conf /etc/kubernetes/
 done

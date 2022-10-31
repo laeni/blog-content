@@ -494,6 +494,8 @@ etcdctl --endpoints=$ENDPOINTS get foo --prefix
 # 删除key
 etcdctl --endpoints=$ENDPOINTS del foo
 etcdctl --endpoints=$ENDPOINTS del foo --prefix
+# 获取所有key
+for key in $(etcdctl --endpoints=$ENDPOINTS get --from-key -w json '' | json_pp | grep '"key"' | sed 's/.*: "//g' | sed 's/".*/\n/g'); do echo $key | base64 -d; echo ""; done
 ```
 
 ### 事务
@@ -694,7 +696,7 @@ etcdctl --endpoints=${ENDPOINTS} role add role0
 etcdctl --endpoints=${ENDPOINTS} role add k8s
 # 授予 role0 角色读写 foo key
 etcdctl --endpoints=${ENDPOINTS} role grant-permission role0 readwrite foo
-# 授予 k8s 角色读写所有前缀为 /k8s-tmp 的 key
+# 授予 k8s 角色读写所有前缀为 /k8s 的 key
 etcdctl --endpoints=${ENDPOINTS} role grant-permission --prefix k8s readwrite /k8s
 etcdctl --endpoints=${ENDPOINTS} user add user0
 # 添加无密码用户，这种用户需要提供客户端证书才能登录

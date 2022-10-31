@@ -1,7 +1,9 @@
 ---
 title: Docker使用笔记
-date: '2021-10-01'
+author: 'Laeni'
 tags: ["Docker", "容器"]
+date: '2021-10-01'
+updated: '2022-10-16'
 ---
 
 ## 安装Docker引擎
@@ -127,15 +129,25 @@ Docker在默认情况下使用的 Cgroup Driver 为 `cgroup`，而 Kubernetes �
 
 ### 修改镜像地址
 
-编辑 `/etc/docker/daemon.json` (没有该文件就新建一个），添加如下启动项参数并重启即可：
+参见[daemon.json](#daemon.json)。
+
+### daemon.json
+
+`daemon.json`为Docker系统级全局配置，路径为`/etc/docker/daemon.json` (没有该文件就新建一个）。每次修改后需要执行`systemctl daemon-reload && systemctl restart docker`使新配置生效。以下为常用的配置：
 
 ```json
 {
-    "registry-mirrors": [
-        "https://mirror.ccs.tencentyun.com"
-    ]
+    "registry-mirrors": ["https://mirror.ccs.tencentyun.com"],
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-opts": {"max-size":"100m", "max-file":"5"}
 }
 ```
+
+> **registry-mirrors:** 镜像加速地址，可以配置多个。
+>
+> **exec-opts:** 设置Cgroup Driver。
+>
+> **log-opts:** 容器日志选项，如果不配置则永不删除。`max-size`表示单个日志文件最大大小，超过将会被切分，`max-file`表示最多保留的切分后的日志数量。
 
 ## Docker Help
 
