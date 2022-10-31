@@ -11,3 +11,5 @@ $ wg syncconf wg0 <(wg-quick strip wg0)
 
 - https://gobomb.github.io/post/wireguard-notes/
 - <https://blog.mygallop.cn/2022/06/centos/wireguard-install/>
+- [wg-quick 路由策略解读](https://icloudnative.io/posts/linux-routing-of-wireguard/)
+- [Wireguard 使用笔记](https://gobomb.github.io/post/wireguard-notes/)

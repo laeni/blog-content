@@ -1715,10 +1715,36 @@ const templateStr = `
 `
 ```
 
-# 特别注意
+# 特别注意（易错点）
 
 1. `make(T, args)`只创建切片、Map和通道，并返回`T`类型（非`*T` ）的*初始化*（非*清零*）值（不返回指针）。
 2. 与切片一样，Map 保存对基础数据结构的引用。
+3. 不能通过匿名表达式调用指针方法。
+   如已知类型定义如下：
+
+   ```go
+   type Integer int
+   func (a *Integer) Add(b Integer) Integer {
+   	return *a + b
+   }
+   ```
+
+   错误使用示例:
+   ```go
+   sum := Integer(1).Add(Integer(2))
+   
+   var a Integer = 1
+   var i interface{} = a
+   sum := i.(Integer).Add(Integer(2))
+   ```
+   
+   正确使用示例:
+   
+   ```go
+   var a Integer = 1
+   // 需要是明确定义的变量才能调用指针方法
+   sum := a.Add(Integer(2))
+   ```
 
 # 其他常用操作
 

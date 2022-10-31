@@ -1,12 +1,12 @@
 ---
 title: JDBC线程池设置
 description: 
-tags: '软件JDBC流程, JDBC线程池'
+tags: 'JDBC'
 date: '2021-05-24'
 updated: '2021-05-26'
 ---
 
-![img](F:\Objects\cn.laeni\blog-content\note\datasouce\jdbc-pool.assets\1649861-20200317152016551-1682542588.png)
+![img](.\jdbc-pool.assets\1649861-20200317152016551-1682542588.png)
 
 一、corePoolSize 核心线程数（最小线程数）
 线程池中会维护一个最小的线程数量，即使这些线程处理空闲状态，他们也不会 被销毁，除非设置了allowCoreThreadTimeOut。这里的最小线程数量即是corePoolSize。

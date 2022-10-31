@@ -4,7 +4,7 @@
 
 1. 选择最小安装。否则会安装很多不需要的东西，特别是游戏，还无法卸载。
 
-2. 不安装其他软件（可选）
+2. 安装其他软件（可选）
 
 3. 联网后再安装。这样安装时会下载语言和自带的输入法等，否则输入法问题很麻烦。
 
@@ -33,10 +33,9 @@
 3. wireguard
 
    ```shell
-   $ sudo apt install resolvconf # 官网没有该命令，但是如果该命令不存在时需要安装
-   $ sudo apt install wireguard
+   $ sudo apt install wireguard # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
    ```
-
+   
 4. 火焰截图
 
    应用商店(snap)

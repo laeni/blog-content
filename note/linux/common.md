@@ -55,6 +55,8 @@ updated: '2022-07-28'
 │       │   └── systemd/user/ # 用户级别的 service 定义，使用`systemctl --user status xxx.service`操作服务
 │       └── .local
 │           └── bin/  # 用户级别的可执行二进制软件
+├── /lib
+│   └── /systemd/system # 用户级别的 service 定义
 ├── media
 ├── mnt
 ├── opt
