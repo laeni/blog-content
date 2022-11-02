@@ -1,5 +1,5 @@
 ---
-title: HTTP接口响应格式定义参考
+title: HTTP接口响应格式定义参考（restful风格）
 author: 'Laeni'
 tags: HTTP, API, restful, 错误响应格式规范
 date: '2022-02-22'
@@ -124,6 +124,6 @@ updated: '2022-03-22'
 
 ## 参考文档
 
-1. [[简书]restful风格API]([restful风格API - 简书 (jianshu.com)](https://www.jianshu.com/p/73d2415956bd))
+1. [[简书]restful风格API](https://www.jianshu.com/p/73d2415956bd)
 2. [微信支付-开发者文档](https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay2_0.shtml#part-6)
 
