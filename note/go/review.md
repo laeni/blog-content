@@ -2,8 +2,8 @@
 title: Golang 知识点复习/易错点记录
 author: Laeni
 tags: go,golang
-date: 2022-10-10
-updated: 2022-10-10
+date: '2022-10-10'
+updated: '2022-10-10'
 ---
 
 # 通道
