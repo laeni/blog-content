@@ -3,7 +3,7 @@ title: MacOS 使用技巧
 tags: MacOS, Terminal
 author: Laeni
 date: '2022-11-29'
-updated: '2022-11-29'
+updated: '2022-11-30'
 ---
 
 # Terminal
