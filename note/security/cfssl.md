@@ -1,16 +1,16 @@
 ---
 title: cfssl工具帮助文档
 author: 'Laeni'
-tags: cfssl, https, ssl, 自签发证书, 根证书, 中间证书
+tags: cfssl, https, ssl, 自签名证书, 根证书, 中间证书, 证书链
 date: '2022-01-03'
-updated: '2022-01-03'
+updated: '2022-11-05'
 ---
 
 [CFSSL](https://github.com/cloudflare/cfssl) 是 CloudFlare 的 PKI/TLS 瑞士军刀。它既是一个命令行工具，也是一个用于签署、验证和捆绑 TLS 证书的 HTTP API 服务器。
 
 ## cfssl使用示例
 
-> 由于`cfssl`只返回`json`内容，所以一般需要通过`cfssljson`从返回的`json`中提取对内容并写入到文件中，所以后续示例一般都需要结合`cfssljson`来使用。假如将`cfssl`输出的内容保存到`ca-out.txt`文件中，那么删除`ca-out.txt`中多余的内容（仅保留最后的Json）后，使用`cat ca-out.txt | cfssljson -bare ca`将Json中的内容提取到文件中，生成的文件分别为：`CA证书（ca.pem）`、`私钥（ca-key.pem）`和`证书请求（ca.csr）`
+> 由于`cfssl`只返回`json`内容，一般需要通过`cfssljson`从返回的`json`中提取对内容并写入到文件中，所以后续示例一般都需要结合`cfssljson`来使用。假如将`cfssl`输出的内容保存到`ca-out.txt`文件中，那么删除`ca-out.txt`中多余的内容（仅保留最后的Json）后，使用`cat ca-out.txt | cfssljson -bare ca`将Json中的内容提取到文件中，生成的文件分别为：`CA证书（ca.pem）`、`私钥（ca-key.pem）`和`证书请求（ca.csr）`
 
 ### 配置cfssl
 
@@ -49,8 +49,8 @@ $ cfssl print-defaults config # 这里的config为参数类型，使用 cfssl pr
 
 根据自身需要修改配置
 
-```shell
-cat > cfssl-config.json <<EOF
+```sh
+$ cat <<EOF | tee cfssl-config.json
 {
     "signing": {
         "default": {
@@ -90,108 +90,122 @@ EOF
 
 ### CA证书
 
-这里我们生成的CA证书由于没有其他颁发机构给我们签名，所以它只能自签名，这种证书又叫根证书。
+这里我们生成的CA证书由于没有其他颁发机构给我们签名，所以它只能自签名，这种证书又叫根证书或 Root CA。
 
-#### 根据配置生成新CA
+#### 根据配置生成CA
 
 ##### cfssl
 
 1. 创建`CSRJSON`
     ```shell
-    $ cat > ./ca-csr.json <<EOF
+    $ cat > ./global_root_ca-csr.json <<EOF
     {
-      "CN": "Laeni Global Root CA",
-      "key": {
-        "algo": "rsa",
-        "size": 2048
-      },
-      "ca": {
-        "expiry": "87600h"
-      },
-      "names": [
-        {
-          "C": "CN",
-          "ST": "YunNan",
-          "L": "KunMing",
-          "O": "Laeni Inc",
-          "OU": "www.laeni.cn"
-        }
-      ]
+        "CN": "Laeni Global Root CA",
+        "key": {
+            "algo": "rsa",
+            "size": 2048
+        },
+        "ca": {
+        	"expiry": "87600h"
+        },
+        "names": [{
+            "C": "CN",
+            "ST": "YunNan",
+            "L": "KunMing",
+            "O": "Laeni Inc",
+            "OU": "www.laeni.cn"
+        }]
     }
     EOF
     ```
     
-2. 根据`CSRJSON`生成私钥和证书请求
+2. 根据`CSRJSON`生成私钥和证书请求（可忽略）
 
     ```shell
-    $ cfssl genkey csr.json | cfssljson -bare ca
+    # 如果要生成证书请求，需要将 global_root_ca-csr.json 中的 ca 字段删除
+    $ cfssl genkey global_root_ca-csr.json | cfssljson -bare global_root_ca
     ```
 
-    > 由于证书请求是用于将公钥交给证书办法机构进行生成证书用的，而这里我们生成的的根证书（不需要给别人），所以在这里生成的证书请求是没用的。但由于一般很少生成根CA，而是生成普通CA，然后使用也有的根CA进行签名，所以这里记录下。
+    > 由于**证书请求**（包含公钥和申请人基本信息等）是证书颁发机构给我们颁发证书时用的，而这里我们生成的是自签名（不需要别人给我们签名）证书，所以在这里生成的证书请求是没用的，故而这里仅仅只是记录下生成方式。
 
 3. 生成证书
 
     ```shell
-    $ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+    $ cfssl gencert -initca global_root_ca-csr.json | cfssljson -bare global_root_ca
+    ```
+
+4. 重命名为常见后缀（不需要做特殊转换）
+
+    ```sh
+    $ mv global_root_ca-key.pem global_root_ca.key
+    $ mv global_root_ca.pem global_root_ca.crt
     ```
 
 ##### openssl
 
 1. 生成私钥
     ```shell
-    $ openssl genrsa -out RootCA.key 2048
+    $ openssl genrsa -out global_root_ca.key 2048
     ```
     
-2. 生成证书请求
+2. 生成证书请求（可忽略）
 
     ```shell
-    $ openssl req -new -key RootCA.key -out RootCA.csr –days 90
+    $ openssl req -days 90 -x509 -key global_root_ca.key -out global_root_ca.csr
     ```
     
-    > 同`cfssl`一样，由于证书请求是用于将公钥交给证书办法机构进行生成证书用的，而这里我们生成的的根证书（不需要给别人），所以在这里生成的证书请求是没用的。
+    > 同`cfssl`一样，这里仅仅只是记录下生成方式。
     
 3. 直接根据私钥生成证书
 
     ```shell
     # 由于openssl没有指定类似上面的 csr.json 配置内容，所以生成时需要根据提示输入相关的主题信息
-    $ openssl req -new -x509 -days 9131 -key RootCA.key -extensions v3_ca -out RootCA.crt
+    $ openssl req -new -x509 -days 9131 -key global_root_ca.key -extensions v3_ca -out global_root_ca.crt
     ```
 
 4. 如有需要，还可以生成`p12`格式证书
 
     ```shell
-    $ openssl pkcs12 -export -inkey RootCA.key -in RootCA.crt -out RootCA.pfx
+    $ openssl pkcs12 -export -inkey global_root_ca.key -in global_root_ca.crt -out global_root_ca.pfx
     ```
 
-> `cfssl`和`openssl`生成的文件作用完全相同，仅仅只是文件后缀名不一致。
+> `cfssl`和`openssl`生成的文件作用完全相同，仅仅只是文件后缀名不一致（可以直接重命名为一致）。
+
+---
 
 #### 根据配置和已有密钥生成CA
 
 由于已经明确提供了密钥，所以不会再生成新的密钥。
 
-使用`cfssl gencert -initca -ca-key key CSRJSON`生成证书以及证书请求：
+使用`cfssl gencert -initca -ca-key <key.pem> CSRJSON`生成证书以及证书请求：
 
 ```sh
-$ cfssl gencert -initca -ca-key ca-key.pem ca-csr.json | cfssljson -bare 2-ca
+$ cfssl gencert -initca -ca-key global_root_ca.key global_root_ca-csr.json | cfssljson -bare 2-global_root_ca
 ```
 
-输出文件：`2-ca.pem（证书）`、`2-ca.csr（证书请求）`
+输出文件：`2-global_root_ca.pem（证书）`、`2-global_root_ca.csr（证书请求）`
 
 #### 根据原CA证书和密钥重新生成新CA
 
 由于已经有证书了，所以不会再生成证书请求，因为证书请求可以看作生成证书的配置，而从证书中可以得到这些配置。
 
-使用`cfssl gencert -renewca -ca cert -ca-key key`重新生成证书：
+使用`cfssl gencert -renewca -ca <cert.pem> -ca-key <key.pem>`重新生成证书：
 
 ```sh
-$ cfssl gencert -renewca -ca ca.pem -ca-key ca-key.pem | cfssljson -bare 3-ca
+$ cfssl gencert -renewca -ca global_root_ca.crt -ca-key global_root_ca.key | cfssljson -bare 3-global_root_ca
 ```
 
-输出文件：`3-ca.pem（证书）`
+输出文件：`3-global_root_ca.pem（证书）`
 
 ### 签名
 
-
+```sh
+$ cfssl sign \
+  -ca <ca.pem / ca.crt> `# 用于签名的证书颁发机构证书（CA）` -ca-key <ca-key.pem / ca.key> `# CA对应的私钥`\
+  -config <cfssl-config.json> `# cfssl工具配置文件` -profile ca `# 指定要用配置文件中的哪个 profile`\
+  <ca.csr> `# 证书请求文件（由申请人提供，里面包含公钥/申请人基本信息等）`\
+  | cfssljson -bare <xx> `# 将签名后生成的证书写入'xx'开头的文件（xx.pem，可直接重命名为'.crt'后缀）`
+```
 
 ## cfssl HELP
 
@@ -257,13 +271,11 @@ ocspserve: 设置一个HTTP服务器，处理来自文件或直接来自数据�
         "algo": "ecdsa",
         "size": 256
     },
-    "names": [
-        {
-            "C": "US",
-            "ST": "CA",
-            "L": "San Francisco"
-        }
-    ]
+    "names": [{
+        "C": "US",
+        "ST": "CA",
+        "L": "San Francisco"
+    }]
 }
 ```
 
@@ -272,23 +284,21 @@ ocspserve: 设置一个HTTP服务器，处理来自文件或直接来自数据�
 ```json
 // 可能的文件名: ca.json | ca-csr.json
 {
-  "CN": "Ibox Inc", //【一般必须】常用名/身份/认证机构/颁发者，后面生成的证书会显示该证书由某某机构颁发，该名称一般不能随意 填写，比如 etcd 会将该值当作用户名
-  "key": { //【必须】指明证书类型与强度
-    "algo": "rsa",
-    "size": 2048
-  },
-  "ca": {
-    "expiry": "876000h" //【必须】证书过期时间，一般根证书的过期时间会稍微长一点
-  },
-  "names": [ //【可选】主体/颁发者详细信息，理论上该属性及其子属性都是可选的，且一般为英文(没试过中文)
-    {
-      "C": "CN",         // 国家
-      "ST": "GuangDong", // 州/省
-      "L": "ShenZhen",   // 位置（一般填写“市”）
-      "O": "Laeni, Inc.", // 组织
-      "OU": "Laeni"      // 单位/机构
-    }
-  ]
+    "CN": "Ibox Inc", //【一般必须】常用名/身份/认证机构/颁发者，后面生成的证书会显示该证书由某某机构颁发，该名称一般不能随意 填写，比如 etcd 会将该值当作用户名
+    "key": { //【必须】指明证书类型与强度
+        "algo": "rsa",
+        "size": 2048
+    },
+    "ca": {
+        "expiry": "876000h" //【必须】证书过期时间，一般根证书的过期时间会稍微长一点
+    },
+    "names": [{ //【可选】主体/颁发者详细信息，理论上该属性及其子属性都是可选的，且一般为英文(没试过中文)
+        "C": "CN",         // 国家
+        "ST": "GuangDong", // 州/省
+        "L": "ShenZhen",   // 位置（一般填写“市”）
+        "O": "Laeni, Inc.", // 组织
+        "OU": "Laeni"      // 单位/机构
+    }]
 }
 ```
 
@@ -299,15 +309,13 @@ ocspserve: 设置一个HTTP服务器，处理来自文件或直接来自数据�
 ```json
 {
     "CN": "example.com",
-    "names": [
-        {
-            "C":  "US",
-            "ST": "California",
-            "L":  "San Francisco",
-            "O":  "Internet Widgets, Inc.",
-            "OU": "WWW"
-        }
-    ]
+    "names": [{
+        "C":  "US",
+        "ST": "California",
+        "L":  "San Francisco",
+        "O":  "Internet Widgets, Inc.",
+        "OU": "WWW"
+    }]
 }
 ```
 
@@ -461,15 +469,13 @@ Flags:
 ```json
 {
     "CN": "example.com",
-    "names": [
-        {
-            "C":  "US",
-            "L":  "San Francisco",
-            "O":  "Internet Widgets, Inc.",
-            "OU": "WWW",
-            "ST": "California"
-        }
-    ]
+    "names": [{
+        "C":  "US",
+        "L":  "San Francisco",
+        "O":  "Internet Widgets, Inc.",
+        "OU": "WWW",
+        "ST": "California"
+    }]
 }
 ```
 
@@ -548,15 +554,13 @@ $ cfssl genkey csr.json | cfssljson -bare xxx
         "algo": "rsa",
         "size": 2048
     },
-    "names": [
-        {
-            "C":  "US",
-            "L":  "San Francisco",
-            "O":  "Internet Widgets, Inc.",
-            "OU": "WWW",
-            "ST": "California"
-        }
-    ]
+    "names": [{
+        "C":  "US",
+        "L":  "San Francisco",
+        "O":  "Internet Widgets, Inc.",
+        "OU": "WWW",
+        "ST": "California"
+    }]
 }
 ```
 
