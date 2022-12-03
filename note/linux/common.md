@@ -58,7 +58,7 @@ updated: '2022-07-28'
 │       └── .local
 │           └── bin/  # 用户级别的可执行二进制软件
 ├── /lib
-│   └── /systemd/system # 用户级别的 service 定义
+│   └── /systemd/system # 系统级别的 service 定义（一般为系统核心服务）
 ├── media
 ├── mnt
 ├── opt
