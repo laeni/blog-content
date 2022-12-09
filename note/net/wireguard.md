@@ -6,28 +6,6 @@ date: '2022-12-06'
 updated: '2022-12-08'
 ---
 
-```mermaid
-flowchart TB
-	手机
-    subgraph 墙外资源
-    	Google
-    	Youtube
-    end
-    subgraph 个人云资源
-    	文件存储 --- 轻量应用服务器
-    end
-    subgraph 家
-    	路由器-H
-    	PC1
-    	PC2
-    end
-    subgraph 公司
-        办公电脑 --- 公司出口路由
-        Wiki --- 公司出口路由
-        Git --- 公司出口路由
-    end
-```
-
 关于*WireGuard*的详细介绍可参见官方[WireGuard官网](https://www.wireguard.com/)或查看[另一篇博文](/share/20221208)。
 
 # 安装
