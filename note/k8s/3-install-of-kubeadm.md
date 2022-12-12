@@ -6,20 +6,45 @@ date: '2022-10-29'
 updated: '2022-10-29'
 ---
 
+# 规划
+
+```sh
+NODE_NAME=cloud-tx # 当前节点主机名，如果有多个节点，需要保证唯一
+NODE_HOST=10.10.1.1 # 当前节点 IP 地址
+ETCD_PREFIX=/k8s/registry-$NODE_NAME # k8s 集群存储使用的前缀，后面可能需要使用共享 etcd，为避免冲突，这是指定单独的前缀。 default: /registry
+SERVICE_CLUSTER_IP_RANGE=10.1.0.0/16 # Service网段 - service-cluster-ip-range
+CLUSTER_CIDR=10.2.0.0/16 # Pod网段 - clusterCIDR
+CLUSTER_DNS=10.1.0.53 # 集群DNS. 必须在 Service 网段内
+APISERVER_SERVICE=10.1.0.1 # apiserver 服务IP，一般为网段的第一个
+KUBERNETES_VERSION=1.26.0
+
+# 独立部署的 etcd 相关信息（这里使用外部 EDCT，如果需要一同部署ETCD，则忽略这部分配置）
+ETCD_SERVERS=https://10.10.1.1:2379
+ETCD_CAFILE=/mnt/share/archive/cert/etcd/ca.crt
+ETCD_CERTFILE=/mnt/share/archive/cert/etcd/client/k8s-$NODE_NAME.crt
+ETCD_KEYFILE=/mnt/share/archive/cert/etcd/client/k8s-$NODE_NAME.key
+
+# 其他
+CERT=/mnt/share/archive/cert # 全局根CA（global_root_ca.crt）所在路径
+```
+
 # 安装前准备
 
-## 安装kubelet
+## 下载工具
+
+建议到[Github](https://github.com/kubernetes/kubernetes/releases)下载**Note 版本**工具。
+
+## 配置kubelet
 
 kubelet安装可参考[K8s官方文档](https://kubernetes.io/zh-cn/docs/tasks/tools/#kubectl)。
 
 > 如果是采用二进制方式安装的情况，需要手动添加`kubelet.service`服务文件并按实际要求配置，如果是kubeadm工具使用，则可以参考[官网例子](https://kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/kubelet-integration/#the-kubelet-drop-in-file-for-systemd)。
 >
 > ```sh
-> $ cat <<EOF | sudo tee /etc/systemd/system/kubelet.service
+> $ cat <<EOF | sudo tee /usr/local/lib/systemd/system/kubelet.service
 > [Unit]
 > Description=Kubernetes Kubelet Server
 > Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-> After=network-online.target
 > After=network-online.target
 > 
 > [Service]
@@ -51,7 +76,8 @@ kubeadm配置文件分为`init`配置（通过`kubeadm config print init-default
 
 新版本中，该配置用完之后会自动上传到集群中保存起来以便后用，如果老版本没有自动上传的需要手动上传。
 
-```yaml
+```sh
+$ cat <<EOF | tee kubeadm-init.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
 bootstrapTokens:
 - groups:
@@ -63,51 +89,50 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 10.10.1.2 # 集群公告地址 default: 1.2.3.4
+  advertiseAddress: $NODE_HOST # 集群公告地址 default: 1.2.3.4
   bindPort: 6443
 nodeRegistration:
   criSocket: unix:///var/run/containerd/containerd.sock
   imagePullPolicy: IfNotPresent
-  name: node-pc-ubuntu # node名称，如有需要可以进行更改
+  name: $NODE_NAME # node名称，如有需要可以进行更改
   taints: [] # 如果需要在主节点运行其他pod则需要去除"污点". default: null
 ---
 apiServer:
   timeoutForControlPlane: 4m0s
   extraArgs:
     # 由于这里使用外部共享Etcd共享存储，并且为了数据污染，序言指定前缀. 默认值："/registry"
-    etcd-prefix: /k8s/registry-ubuntu
+    etcd-prefix: /k8s/registry-$NODE_NAME
 apiVersion: kubeadm.k8s.io/v1beta3
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
 controllerManager: {}
 dns: {}
-# 由于是笔记本搭建，想尽可能少的安装服务，所以这里Etcd使用外部共享的
 etcd:
+  # 使用本地Etcd，与 external 配置只能二选一
   #local:
   #  dataDir: /var/lib/etcd
+  # 使用外部Etcd，与 local 配置只能二选一
   external:
     endpoints:
-      - https://10.10.1.1:2379
-    caFile: /home/laeni/Desktop/NFS/archive/cert/etcd/ca.crt
-    certFile: /home/laeni/Desktop/NFS/archive/cert/etcd/client-k8s-pc-ubuntu.crt
-    keyFile: /home/laeni/Desktop/NFS/archive/cert/etcd/client-k8s-pc-ubuntu.key
-imageRepository: registry.k8s.io # 默认情况下，大陆地区需要梯子才能访问，或者还成其他内国源也行
+      - $ETCD_SERVERS
+    caFile: $ETCD_CAFILE
+    certFile: $ETCD_CERTFILE
+    keyFile: $ETCD_KEYFILE
+imageRepository: registry.k8s.io # 默认情况下，大陆地区需要梯子才能访问，或者换成其他内国源也行
 kind: ClusterConfiguration
-kubernetesVersion: 1.25.3
+kubernetesVersion: $KUBERNETES_VERSION
 networking:
   dnsDomain: cluster.local
-  serviceSubnet: 10.1.0.0/16 # default: 10.96.0.0/12
-  podSubnet: 10.2.0.0/16 # clusterCIDR.最好明确指定pod网段 default: 未定义
+  serviceSubnet: $SERVICE_CLUSTER_IP_RANGE # default: 10.96.0.0/12
+  podSubnet: $CLUSTER_CIDR # clusterCIDR.最好明确指定pod网段 default: 未定义
 scheduler: {}
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
-authentication:
-  x509:
-    clientCAFile: /etc/kubernetes/pki/ca.crt
 cgroupDriver: systemd
 failSwapOn: false # 如果不是生产环境，一般都都会开启交换分区，所以需要指定开启Swap时不失败退出
 staticPodPath: /etc/kubernetes/manifests
+EOF
 ```
 
 ## 启用 Shell 自动完成
@@ -122,7 +147,7 @@ staticPodPath: /etc/kubernetes/manifests
 
 ## 根据`init phase preflight`提示安装缺少的工具
 
-`sudo kubeadm --config .. init phase preflight`
+`sudo kubeadm --config kubeadm-init.yaml init phase preflight`
 
 - [ERROR FileExisting-crictl]: crictl not found in system path
 
@@ -153,28 +178,36 @@ staticPodPath: /etc/kubernetes/manifests
   $ sudo apt install socat
   ```
 
-- hostname "xxx" could not be reached
+- [WARNING Hostname]: hostname "xxx" could not be reached
 
   编辑'/etc/hosts'bingham添加本机IP地址解析
+  
+  ```sh
+  $ echo "$NODE_HOST $NODE_NAME" | sudo tee -a /etc/hosts
+  ```
+  
+- [WARNING Swap]: swap is enabled; production deployments should disable swap ...
+
+  生产时一定要关闭**swap**，非生存可以忽略，但是要通过**kubeadm配置**允许关闭*启动swap时失败*：`failSwapOn: false`.
+
+- 环境检查通过后会根据配置拉取相关镜像，如果失败则需要将镜像源更换为可访问的地址。
 
 # 初始化集群示例
 
 ```sh
-$ # kubeadm init --config kubeadm-init.yaml 
-[init] Using Kubernetes version: v1.25.3
+$ sudo kubeadm init --config kubeadm-init.yaml
+[init] Using Kubernetes version: v1.26.0
 [preflight] Running pre-flight checks
 	[WARNING Swap]: swap is enabled; production deployments should disable swap unless testing the NodeSwap feature gate of the kubelet
-	[WARNING SystemVerification]: missing optional cgroups: blkio
-	[WARNING Service-Kubelet]: kubelet service is not enabled, please run 'systemctl enable kubelet.service'
 [preflight] Pulling images required for setting up a Kubernetes cluster
 [preflight] This might take a minute or two, depending on the speed of your internet connection
 [preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
 [certs] Using certificateDir folder "/etc/kubernetes/pki"
-[certs] Generating "ca" certificate and key
+[certs] Using existing ca certificate authority
 [certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local node-pc-ubuntu] and IPs [10.96.0.1 10.10.1.2]
+[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local pc-ubuntu] and IPs [10.1.0.1 10.10.1.2]
 [certs] Generating "apiserver-kubelet-client" certificate and key
-[certs] Generating "front-proxy-ca" certificate and key
+[certs] Using existing front-proxy-ca certificate authority
 [certs] Generating "front-proxy-client" certificate and key
 [certs] External etcd mode: Skipping etcd/ca certificate authority generation
 [certs] External etcd mode: Skipping etcd/server certificate generation
@@ -195,11 +228,11 @@ $ # kubeadm init --config kubeadm-init.yaml
 [control-plane] Creating static Pod manifest for "kube-controller-manager"
 [control-plane] Creating static Pod manifest for "kube-scheduler"
 [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
-[apiclient] All control plane components are healthy after 23.528051 seconds
+[apiclient] All control plane components are healthy after 20.011035 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
 [kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Skipping phase. Please see --upload-certs
-[mark-control-plane] Marking the node node-pc-ubuntu as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+[mark-control-plane] Marking the node pc-ubuntu as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
 [bootstrap-token] Using token: abcdef.0123456789abcdef
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
@@ -230,7 +263,7 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 Then you can join any number of worker nodes by running the following on each as root:
 
 kubeadm join 10.10.1.2:6443 --token abcdef.0123456789abcdef \
-	--discovery-token-ca-cert-hash sha256:d93d99bec77ab9d1ab842cc54f80471a9b3488fe29fea2376f7100d4e503fa77
+	--discovery-token-ca-cert-hash sha256:919b71ef2006f080d8a4223cdbcbcbac464a5ffae86c90b2f01259cc8af41220
 ```
 
 # Help
@@ -461,3 +494,6 @@ Flags:
 Use "kubeadm init [command] --help" for more information about a command.
 ````
 
+# 其他
+
+[使用 kubeadm 进行证书管理](https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/)

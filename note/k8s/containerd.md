@@ -8,7 +8,8 @@
   $ curl -o  -L https://github.com/containerd/nerdctl/releases/download/v1.0.0/nerdctl-full-1.0.0-linux-amd64.tar.gz
   $ tar Cxzvvf /usr/local nerdctl-full-1.0.0-linux-amd64.tar.gz
   $ ln -s /usr/local/libexec/cni/* /usr/local/bin/
-  $ sudo systemctl enable --now containerd
+  # 开启自起：下载 https://github.com/containerd/containerd/blob/main/containerd.service 到 `/usr/local/lib/systemd/system/` 中
+  $ sudo systemctl daemon-reload && sudo systemctl enable --now containerd
   ```
   
 - 依次手动安装
@@ -19,7 +20,7 @@
      从 https://github.com/containerd/containerd/releases 下载二进制文件并解压到 `/usr/local/bin`
      
      通过 systemd 启动containerd并开机自启动：
-     下载 https://github.com/containerd/containerd/blob/main/containerd.service 到 containerd.service/usr/local/lib/systemd/system/ 中
+     下载 https://github.com/containerd/containerd/blob/main/containerd.service 到 `/usr/local/lib/systemd/system/` 中
   
      ```shell
      $ systemctl daemon-reload

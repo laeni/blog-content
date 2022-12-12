@@ -8,13 +8,26 @@ updated: '2022-08-01'
 
 根据[PKI证书和要求](https://kubernetes.io/zh-cn/docs/setup/best-practices/certificates/#configure-certificates-manually)创建符合K8s集群所需要的全部证书，目的是为了熟悉证书生成过程并且了解各个证书的作用。这里先生成根CA，然后再通过根CA创建K8s中需要的几个CA，最后通过这些CA来签发对应的证书。
 
-最终的文件结构：
+# 证书文件结构预览
 
+在各种情况下推荐手动生成的证书。
+
+## kubeadm 工具部署集群
+
+```sh
+/etc/kubernetes/pki$ tree
+├── ca.crt
+├── ca.key
+├── etcd
+│   ├── ca.crt
+│   └── ca.key
+├── front-proxy-ca.crt
+└── front-proxy-ca.key
 ```
 
-```
+> 使用**kubeadm**时，建议仅创建必须的根CA，其他证书自动生成。
 
-## 生成根CA
+# 生成根CA
 
 参见[cfssl工具帮助文档](/note/security/cfssl)创建根CA，创建根CA很简单，但是注意根CA的有效期一般比其他的要稍微长一点。在K8s中，实际上并不需要本根CA，但是如果存在的话，在某些时候可以简化使用，比如信任根CA后使用`etcdctl`时可以不指定`--cacert`选项。
 
@@ -24,7 +37,7 @@ updated: '2022-08-01'
 $ mkdir k8s && cd k8s/
 ```
 
-## 创建中间 CA
+# 创建中间 CA
 
 从安全角度严格来讲，K8s需要`kubernetes-ca`,`etcd-ca`和`kubernetes-front-proxy-ca`三个中间CA，当然如果为了简单则可以指创建一个中间CA或者直接使用根CA也是可以的。
 
@@ -137,11 +150,11 @@ $ mkdir k8s && cd k8s/
    $ rm -rf *.{json,csr} && rm -rf etcd/*.{json,csr}
    ```
 
-## 创建其他证书
+# 创建其他证书
 
 一般情况，创建上面三对中间CA即可，其他证书可以委托给`kubeadm`创建，但也可以全部手动创建好。
 
-### 创建ETCD相关证书
+## 创建ETCD相关证书
 
 1. 创建`CSRJSON`配置文件
 
@@ -261,7 +274,7 @@ $ mkdir k8s && cd k8s/
    $ cat apiserver-etcd-client.pem etcd/ca.crt > apiserver-etcd-client.crt && mv apiserver-etcd-client-key.pem apiserver-etcd-client.key
    ```
 
-### 创建apiserver相关证书
+## 创建apiserver相关证书
 
 1. 创建`CSRJSON`配置文件
 
@@ -335,7 +348,7 @@ $ mkdir k8s && cd k8s/
    $ cat apiserver-kubelet-client.pem ca.crt > apiserver-kubelet-client.crt && mv apiserver-kubelet-client-key.pem apiserver-kubelet-client.key
    ```
 
-### 创建front-proxy-client证书
+## 创建front-proxy-client证书
 
 1. 创建`CSRJSON`配置文件
 
@@ -379,7 +392,7 @@ $ mkdir k8s && cd k8s/
    $ rm -rf *.{json,csr} && rm -rf etcd/*.{json,csr}
    ```
 
-## 将生成的所有证书链接或复制到k8s推荐的目录中
+# 将生成的所有证书链接或复制到k8s推荐的目录中
 
 ```shell
 $ cd ..
@@ -387,9 +400,9 @@ $ sudo mkdir -p /etc/kubernetes
 $ sudo ln -sf $(pwd)/k8s /etc/kubernetes/pki
 ```
 
-## 生成用户（客户端）配置文件
+# 生成用户（客户端）配置文件
 
-### 生成各个用户的证书
+## 生成各个用户的证书
 
 ```shell
 $ mkdir client && cd client
@@ -478,7 +491,7 @@ do
 done
 ```
 
-### 生成配置文件
+## 生成配置文件
 
 ```shell
 $ for item in 'admin' 'kubelet' 'kube-proxy' 'controller-manager' 'scheduler'

@@ -50,7 +50,7 @@ updated: '2022-07-28'
 ├── dev
 ├── etc
 │   └── systemd
-│       └── system/ # 系统级别的 service 定义
+│       └── system/ # 系统级别的 service 定义（一般为安装软件时系统自动生成）
 ├── home
 │   └── <user_name>
 │       ├── .config
@@ -68,6 +68,10 @@ updated: '2022-07-28'
 ├── sys
 ├── tmp
 ├── usr
+│   └── local
+│       └── lib
+│           └── systemd
+│               └── system # 系统级别的 service 定义（一般为手动创建）
 └── var
 ```
 

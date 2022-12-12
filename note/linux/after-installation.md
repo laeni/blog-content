@@ -16,7 +16,25 @@
 
    由于是最小安装，所以“启动盘创建器”工具不会安装，可以在应用商店搜索“Startup Disk Creator”安装即可。
 
-2. 信任自签名证书
+2. wireguard
+
+   ```sh
+   $ sudo apt install wireguard resolvconf # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
+   $ scp tx:/mnt/share/node/ubuntu/system/etc/wireguard/wg0.conf .
+   $ sudo mv wg0.conf /etc/wireguard
+   $ systemctl enable wg-quick@wg0 --now
+   ```
+
+3. 挂载NFS
+
+   ```sh
+   $ sudo apt-get install nfs-common nfs-kernel-server # 如果挂载失败，则至少要安装 nfs-common
+   $ scp tx:/mnt/share/archive/system/linux/etc/systemd/system/auto_mount_nfs.service .
+   $ sudo mv auto_mount_nfs.service /etc/systemd/system/
+   $ sudo systemctl enable auto_mount_nfs.service --now
+   ```
+
+4. 信任自签名证书
 
    由于有些服务器只是自己用，但是为了安全所以自己签发了证书，所以需要信任根证书。
 
@@ -32,75 +50,21 @@
 
    > 这里只添加了系统和nssdb，如果需要在java中使用，则需要再将根证书添加到java证书库中。
 
-3. wireguard
-
-   ```shell
-   $ sudo apt install wireguard # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
-   ```
-
-   安装好后在备份区恢复`/etc/wireguard/wg0.conf`配置文件，然后创建“开机自动连接VPN并挂载NFS”脚本及服务：
-
-   ```sh
-   $ cat <<EOF | sudo tee /usr/local/bin/auto_start_wg_and_nfs.sh
-   #!/bin/sh
-   
-   # 启动 WireGuard(VPN)
-   wg_status=-1
-   start_wg() {
-       wg-quick down wg0
-       wg-quick up wg0
-       wg_res=\$(ping 10.10.1.1 -c 1 | grep 'rtt min/avg/max/mdev')
-       if [ "\$wg_res" ];then
-           echo  "WireGuard 启动成功"
-           wg_status=0
-       fi
-   }
-   while true; do
-       start_wg
-       if [ \$wg_status = 0 ]; then
-           break
-       else
-         echo "WireGuard 启动失败，5s 后重试！"
-         sleep 5
-       fi
-   done
-   
-   # VPN 开启后挂载NFS
-   umount /home/laeni/Desktop/NFS/
-   mount -t nfs -o vers=3,nolock,proto=tcp,noresvport 10.6.1.2:/hupqoh95 /home/laeni/Desktop/NFS/
-   EOF
-   
-   $ cat <<EOF | sudo tee /etc/systemd/system/auto_start_wg_and_nfs.service
-   [Unit]
-   Description=自动启动VPN并挂载NFS
-   After=network.target default.target
-   
-   [Service]
-   ExecStart=/usr/local/bin/auto_start_wg_and_nfs.sh
-   
-   [Install]
-   WantedBy=default.target
-   EOF
-   
-   $ systemctl start auto_start_wg_and_nfs.service
-   $ systemctl enable auto_start_wg_and_nfs.service
-   ```
-
-4. 远程ssh登陆
+5. 远程ssh登陆
 
    ```sh
    $ sudo apt-get install openssh-server
    ```
 
-5. flameshot（火焰截图）
+6. flameshot（火焰截图）
 
    应用商店(snap)
 
-6. Edge
+7. Edge
 
    官方下载安装包进行安装
 
-7. qqmusic
+8. qqmusic
 
    1. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
 
@@ -122,13 +86,15 @@
       修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
       修改后可能需要重启才生效
 
-8. dbeawer-ce
+9. dbeawer-ce
 
    [官网](https://dbeaver.io/download/)下载安装`Linux Debian package`包安装.
 
-9. draw.io
+10. draw.io
 
-10. WPS
+    https://github.com/jgraph/drawio-desktop/releases
+
+11. WPS
 
    [官网](https://www.wps.cn/product/wpslinux)下载安装
 
@@ -164,8 +130,7 @@
     另外，请将当前登录用户加入 kvm 和 libvirt 用户组，以便能够创建和管理虚拟机。
 
     ```
-    $ sudo usermod -aG kvm $USER
-    $ sudo usermod -aG libvirt $USER
+    $ sudo usermod -aG kvm $USER && sudo usermod -aG libvirt $USER
     ```
 
     安装安成后需要重启系统，否则会出现无法连接的情况（可能由于权限不够，因为上面加入的用户还未生效）
@@ -196,8 +161,7 @@
     $ cd indicator-sysmonitor
     $ pip3 install psutil
     $ sudo make install
-    $ cd ..
-    $ rm -rf indicator-sysmonitor
+    $ cd .. && rm -rf indicator-sysmonitor
     $ nohup indicator-sysmonitor &
     ```
 
@@ -228,11 +192,17 @@
     $ sz local.file
     ```
 
+19. 重新安装`Vim`
 
+    
 
 ## Ubuntu下常见问题解决
 
 1. IDEA无法输入中文
 
    参考[网上文章](https://blog.csdn.net/weixin_43627118/article/details/120663214)，在Idea启动配置文件添加一行`-Drecreate.x11.input.method=true`
+
+2. 应用商店无法打开
+
+   如果挂载了`/home`目录，则可能是由于历史数据导致，删除`/home/username/snap/`目录即可。
 

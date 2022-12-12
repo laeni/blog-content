@@ -25,15 +25,13 @@ sudo sysctl --system
 
 ### 配置虚拟不可变的IP地址
 
-由于笔记本电脑更换网络后本机ip地址会发生变化，变化后K8S需要重新初始化，所以需要给电脑加一个不会变化的静态ip或者使用域名。如果使用不可变ip地址，则使用系统支持的方式创建一个网桥并分配一个ip即可。
+如果是笔记本安装，则强烈建议给电脑加一个不会变化的静态ip或者使用域名。因为笔记本电脑更换网络后本机ip地址会发生变化，变化后K8S需要重新初始化（默认和其他组件和控制平面通信时使用IP，且证书也不再适用）。
+
+该固定IP甚至可以是本机VPN节点地址，或者直接通过`ip link add <NAME> type <TYPE>`等命令创建一个网络接口，并配置合适的IP。
 
 ## 环境配置
 
-### 配置 cgroup 驱动程序
-
-`cgroupfs`和`systemd`都是[控制组（CGroup）](https://kubernetes.io/zh-cn/docs/reference/glossary/?all=true#term-cgroup)驱动程序，如果容器运行时和`kubelet`分别使用不同的驱动程序时可能导致系统不稳定，所以需要统一使用一种驱动程序。
-
-**说明：**
+### 启用 CRI 集成插件
 
 如果你从软件包（例如，RPM 或者 `.deb`）中安装 containerd，你可能会发现其中默认禁止了 CRI 集成插件。
 
@@ -44,6 +42,10 @@ sudo sysctl --system
 ```shell
 sudo systemctl restart containerd
 ```
+
+### 配置 cgroup 驱动程序
+
+`cgroupfs`和`systemd`都是[控制组（CGroup）](https://kubernetes.io/zh-cn/docs/reference/glossary/?all=true#term-cgroup)驱动程序，如果容器运行时和`kubelet`分别使用不同的驱动程序时可能导致系统不稳定，所以需要统一使用一种驱动程序。
 
 当使用 kubeadm 时，请手动配置 [kubelet 的 cgroup 驱动](https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/#configuring-the-kubelet-cgroup-driver)。
 
