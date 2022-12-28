@@ -192,7 +192,7 @@ EOF
 
 - 环境检查通过后会根据配置拉取相关镜像，如果失败则需要将镜像源更换为可访问的地址。
 
-# 初始化集群示例
+# 初始化集群
 
 ```sh
 $ sudo kubeadm init --config kubeadm-init.yaml
@@ -264,6 +264,32 @@ Then you can join any number of worker nodes by running the following on each as
 
 kubeadm join 10.10.1.2:6443 --token abcdef.0123456789abcdef \
 	--discovery-token-ca-cert-hash sha256:919b71ef2006f080d8a4223cdbcbcbac464a5ffae86c90b2f01259cc8af41220
+```
+
+# 初始化之后操作
+
+## 安装网络插件（calico）
+
+[官网](https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises)
+
+```shell
+$ kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.5/manifests/calico.yaml
+```
+
+> 如果使用 kubeadm ，则无需更改清单，Calico 将根据正在运行的配置自动检测 CIDR。
+
+## 删除master污点
+
+如果启动kubelet时就已经去掉的话，这里查不到值。
+
+```shell
+# 查看污点
+$ kubectl --kubeconfig /etc/kubernetes/admin.conf describe nodes <node-name> | grep Taints
+Taints:             node.kubernetes.io/not-ready:NoSchedule
+
+# 删除污点（最后的'-'表示减去/删除的意思）
+$ kubectl --kubeconfig /etc/kubernetes/admin.conf taint node local node.kubernetes.io/not-ready:NoSchedule-
+node/local untainted
 ```
 
 # Help

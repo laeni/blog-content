@@ -38,11 +38,14 @@ $ showmount -e <目标服务器IP>
 
 ### 暴露可挂载目录
 
-服务器通过`/etc/export`配置文件暴露可以被客户端挂载的文件夹以及相关权限，文件每一行为一个挂载点，如：
+服务器通过`/etc/exports`配置文件暴露可以被客户端挂载的文件夹以及相关权限，文件每一行为一个挂载点，如：
 
 ```
-/nfs/shared_1    192.168.*(rw,sync,no_root_squash,no_subtree_check)
-/nfs/shared_2    *(rw,sync,no_root_squash,no_subtree_check)
+# V2/V3
+# /srv/homes       hostname1(rw,sync,no_root_squash,no_subtree_check) hostname2(ro,sync,no_root_squash,no_subtree_check)
+# V4
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_root_squash,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_root_squash,no_subtree_check)
 ```
 
 > /home/nfst_shared — 要共享的目录（就是步骤2创建的nfs目录的绝对路径）
@@ -95,17 +98,23 @@ $ sudo mount -t nfs -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,
 
    控制面板 -> 启用或关闭Windows功能 -> 勾选全部“NFS服务”
 
-2. 通过图形化界面挂载（方式一）
+2. 挂载
 
-   打开文件管理器 -> 通过顶部的“连接到网络驱动器”，输入通过`showmount -e <ip>`查询的到可挂载路径进行挂载，其中格式为：`\\<ip>\path`，但是这种挂载方式只能挂载到某个盘符下，所以一般使用`mklink`或`mount`命令进行挂载。
+   1. [推荐]通过快捷方式挂载（方式一）
 
-3. 通过mklink挂载（方式二）
+      “鼠标右键->新建快捷方式“，填入NFS服务器地址以及挂载路径即可`\\192.168.122.1\data\nfs-data\vm-win10`
 
-   以管理员身份启动`cmd.exxe`进行挂载。
+   2. 通过图形化界面挂载（方式二）
 
-   ```
-   mklink /d C:\Users\xx\Desktop\NFS \\192.168.122.1\data\nfs-data\vm-win10
-   ```
+      打开文件管理器 -> 通过顶部的“连接到网络驱动器”，输入通过`showmount -e <ip>`查询的到可挂载路径进行挂载，其中格式为：`\\<ip>\path`，但是这种挂载方式只能挂载到某个盘符下，所以一般使用`mklink`或`mount`命令进行挂载。
+
+   3. 通过mklink挂载（方式三）
+
+      以管理员身份启动`cmd.exxe`进行挂载。此方式本质上和一是一样的。
+
+      ```
+      mklink /d C:\Users\xx\Desktop\NFS \\192.168.122.1\data\nfs-data\vm-win10
+      ```
 
 > 1. Windows挂载后可能没有权限写入，如果没有权限，首先要检查NFS服务器文件权限设置，需要将挂载文件夹设置为`777`或者设置为`nogroup`用户组和`nobody`用户（Ubuntu测试，设置为`777`后随笔通过Windows写入文件之后查看用户信息即可得到）。
 >

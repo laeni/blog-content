@@ -88,6 +88,13 @@ $ cat <<EOF | tee cfssl-config.json
 EOF
 ```
 
+> **usages**可能的值：
+>
+> - signing：表示该证书可用于签发其它证书。
+> - key encipherment：表示该证书可以用于加密。
+> - server auth：表示该证书可用于服务器认证（比如https证书就是服务端证书）。
+> - client auth：表示该证书可以用于客户端认证。
+
 ### CA证书
 
 这里我们生成的CA证书由于没有其他颁发机构给我们签名，所以它只能自签名，这种证书又叫根证书或 Root CA。

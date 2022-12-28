@@ -1,6 +1,6 @@
-## 网络配置
+# 网络配置
 
-### [转发 IPv4 并让 iptables 看到桥接流量](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#%E8%BD%AC%E5%8F%91-ipv4-%E5%B9%B6%E8%AE%A9-iptables-%E7%9C%8B%E5%88%B0%E6%A1%A5%E6%8E%A5%E6%B5%81%E9%87%8F)
+## [转发 IPv4 并让 iptables 看到桥接流量](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#%E8%BD%AC%E5%8F%91-ipv4-%E5%B9%B6%E8%AE%A9-iptables-%E7%9C%8B%E5%88%B0%E6%A1%A5%E6%8E%A5%E6%B5%81%E9%87%8F)
 
 ```bash
 # 配置启动时自动加载 overlay 和 br_netfilter 模块
@@ -23,15 +23,19 @@ EOF
 sudo sysctl --system
 ```
 
-### 配置虚拟不可变的IP地址
+## 配置虚拟不可变的IP地址
 
 如果是笔记本安装，则强烈建议给电脑加一个不会变化的静态ip或者使用域名。因为笔记本电脑更换网络后本机ip地址会发生变化，变化后K8S需要重新初始化（默认和其他组件和控制平面通信时使用IP，且证书也不再适用）。
 
 该固定IP甚至可以是本机VPN节点地址，或者直接通过`ip link add <NAME> type <TYPE>`等命令创建一个网络接口，并配置合适的IP。
 
-## 环境配置
+# 环境配置
 
-### 启用 CRI 集成插件
+## 关闭 selinux
+
+Ubuntu 以及打多数云服务器默认关闭，但如果开启的话需要关闭。可以通过`sestatus`检查开启状态。
+
+## 启用 CRI 集成插件
 
 如果你从软件包（例如，RPM 或者 `.deb`）中安装 containerd，你可能会发现其中默认禁止了 CRI 集成插件。
 
@@ -43,13 +47,13 @@ sudo sysctl --system
 sudo systemctl restart containerd
 ```
 
-### 配置 cgroup 驱动程序
+## 配置 cgroup 驱动程序
 
 `cgroupfs`和`systemd`都是[控制组（CGroup）](https://kubernetes.io/zh-cn/docs/reference/glossary/?all=true#term-cgroup)驱动程序，如果容器运行时和`kubelet`分别使用不同的驱动程序时可能导致系统不稳定，所以需要统一使用一种驱动程序。
 
 当使用 kubeadm 时，请手动配置 [kubelet 的 cgroup 驱动](https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/#configuring-the-kubelet-cgroup-driver)。
 
-#### 常见的工具指定 cgroup 驱动程序
+### 常见的工具指定 cgroup 驱动程序
 
 1. containerd
 
@@ -114,5 +118,11 @@ sudo systemctl restart containerd
    $ sudo systemctl restart kubelet
    ```
 
-### [根据k8s要求配置containerd](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#containerd)
+## [根据k8s要求配置containerd](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#containerd)
+
+## 其他系统设置
+
+```sh
+$ echo 'fs.file-max = 6553500' | sudo tee -a /etc/modules-load.d/k8s.conf
+```
 

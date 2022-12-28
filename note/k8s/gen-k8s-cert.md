@@ -27,6 +27,24 @@ updated: '2022-08-01'
 
 > 使用**kubeadm**时，建议仅创建必须的根CA，其他证书自动生成。
 
+## 二进制部署集群
+
+1. Etcd配套证书
+
+2. Kube-APIserver配套证书
+
+3. kube-scheduler配套证书
+
+4. kube-controller-manager配套证书
+
+5. kube-proxy 配套证书
+
+6. service account配套证书
+
+7. admin配套证书
+
+8. kubelet配套证书
+
 # 生成根CA
 
 参见[cfssl工具帮助文档](/note/security/cfssl)创建根CA，创建根CA很简单，但是注意根CA的有效期一般比其他的要稍微长一点。在K8s中，实际上并不需要本根CA，但是如果存在的话，在某些时候可以简化使用，比如信任根CA后使用`etcdctl`时可以不指定`--cacert`选项。
