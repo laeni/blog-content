@@ -379,7 +379,7 @@ round-trip min/avg/max/stddev = 0.027/0.027/0.027/0.000 ms
 
 **文件名**：至少存在`setup.go`和`<plugin_name>.go`两个文件，其中`setup.go`主要作用是通过`init`函数注册自己，而`<plugin_name>.go`则是核心逻辑的实现。
 
-#### 插件结构解析
+#### 插件结构
 
 插件由 Setup, Registration, and Handler 部分构成。
 
@@ -535,7 +535,7 @@ type Dispenser struct {
 
    配置解析：
 
-   ```
+   ```go
    func setup(c *caddy.Controller) error {
    	c.Next() // 调用一次 Next() 之后将光标定位在'插件名'上，第一次调用永远返回 true
    
@@ -563,8 +563,8 @@ type Dispenser struct {
    ```
 
    配置解析：
-   
-   ```
+
+   ```go
    func setup(c *caddy.Controller) error {
    	c.Next() // 调用一次 Next() 之后将光标定位在'插件名'上，第一次调用永远返回 true
    
@@ -582,6 +582,98 @@ type Dispenser struct {
    	return nil
    }
    ```
+
+4. 解析嵌套配置块。
+
+   示例配置：
+
+   ```
+   . {
+   		example [插件指令] {
+           sub1 <sub1_param>
+           subBlock1 {
+           		name1 <name1_param>
+           		name2 <name2_param>
+           }
+           subBlock2 {
+           		...
+           }
+       }
+   }
+   ```
+   
+   配置解析：
+   
+   ```go
+   func setup(c *caddy.Controller) error {
+   	// i 表示在一个插件链中定义该插件的次数，一般插件都是不允许重复定义的
+   	i := 0
+   	for c.Next() {
+   		// 同一个插件链只允许定义一次，如果重复定义则报错退出
+   		if i > 0 {
+   			return nil, plugin.ErrOnce
+   		}
+   		i++
+   
+   		// 获取插件指定，指令可能有0个或多个
+   		args := c.RemainingArgs()
+   		if len(args) != 0 {
+   			// TODO 处理插件指令
+   		}
+   
+   		// 进入到配置块中（由于 caddyfile.Dispenser 不支持嵌套块，所以这里不能使用 NextBlock()，而是手动判断左大括号开始）
+   		if c.Next() && c.Val() == "{" {
+         // 且手动判断右大括号结束（这里的右大括号只可能是第一级的括号，所以需要确保子块在 for 循环内处理完成）
+   			for c.Next() && c.Val() != "}" {
+   				switch c.Val() {
+   				case "sub1":
+   					sub1_param := c.RemainingArgs()
+   				case "subBlock1":
+             // 这里才可以使用 NextBlock() 处理子块
+   					for c.NextBlock() {
+   						switch c.Val() {
+   						case "name1":
+   							name1_param := c.RemainingArgs()
+   						case "name2":
+   							name2_param := c.RemainingArgs()
+   						default:
+   						}
+   					}
+   				case "subBlock2":
+   					// TODO 和 subBlock1 一样
+   				default:
+   					log.Warningf("不支持的配置: %s", c.Val())
+   				}
+   			}
+   		}
+   	}
+   }
+   ```
+   
+   > 注意，解析文件块首先想到的可能是利用`NextBlock()`方法来遍历，但是`caddyfile.Dispenser`不支持嵌套配置，所以在处理嵌套块时，只有最后一级块配置才能使用该方法，其他地方需要手动处理。
+
+#### 处理查询
+
+一般将查询分为**有结果**和**无结果**两类，如果查询到结果则终止，否则继续调用下一个插件。当在插件内发生了错误，如果将该错误返回则属于**有结果**，如果将该错误消化，并继续调用下一个插件则属于**无结果**。
+
+如果当前插件无法处理查询，需要继续调用下一个插件时，一般为如下代码：
+
+```go
+// 继续调用下一个插件。'h.Name()'返回当前插件的名字；'h.Next'为 setup 函数中注册插件时的回调函数参数'plugin.Handler'
+plugin.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+```
+
+如果当前插件已有查询结果，可以直接进行响应：
+
+```go
+m := new(dns.Msg)
+m.SetReply(r)
+m.Authoritative = true
+m.Answer = answers // answers 为查询到到应答结果
+w.WriteMsg(m)
+// 写完响应之后要返回成功状态码
+return dns.RcodeSuccess, nil
+```
 
 ## 推荐的`Dockerfile`
 

@@ -75,5 +75,7 @@ updated: '2022-07-28'
 └── var
 ```
 
+## 其他
 
+- [ssh 端口转发 - 简书 (jianshu.com)](https://www.jianshu.com/p/6eb87b48d465)
 
