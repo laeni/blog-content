@@ -10,7 +10,7 @@
 
 3. 联网后再安装。这样安装时会下载语言和自带的输入法等，否则输入法问题很麻烦。
 
-## 常用软件安装
+## 安装后操作
 
 1. Startup Disk Creator
 
@@ -194,7 +194,27 @@
 
 19. 重新安装`Vim`
 
+20. 解决普通用户无法使用`1024`以下端口，参考[原文](https://my.oschina.net/lenglingx/blog/5603925)。
+
+    ```sh
+    #临时生效
+    sysctl net.ipv4.ip_unprivileged_port_start=0
     
+    #永久生效
+    echo "net.ipv4.ip_unprivileged_port_start=0" >> /etc/sysctl.conf
+    sysctl -p
+    ```
+
+21. 解决合上盖子时自动休眠问题
+
+    将`2`文件中`HandleLidSwitch`和`HandleLidSwitchExternalPower`配置项值修改为`lock`或`ignore`，修改后重启生效。
+
+    ```
+    # 合上盖子时动作: suspend-暂停/休眠 ignore-无动作 lock-锁屏
+    HandleLidSwitch=lock
+    # 合上盖子时动作（外接电源时）: suspend-暂停/休眠 ignore-无动作 lock-锁屏
+    HandleLidSwitchExternalPower=lock
+    ```
 
 ## Ubuntu下常见问题解决
 

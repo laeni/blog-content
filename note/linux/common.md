@@ -23,7 +23,7 @@ updated: '2022-07-28'
 
    系统不直接使用`/run/systemd/resolve/resolv.conf`而要使用`/run/resolvconf/resolv.conf`的原因暂时未知，可能是想给应用提供一个永远固定的地址，但是我们可以放心地使用`/run/systemd/resolve/resolv.conf`，因为该文件里有相关说明。
 
-2. 修改`etc/systemd/resolved.conf`配置文件关闭监听
+2. 修改`/etc/systemd/resolved.conf`配置文件关闭监听
 
    ```text
    - #DNSStubListener=yes

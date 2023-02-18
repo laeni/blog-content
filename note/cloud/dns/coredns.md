@@ -454,7 +454,7 @@ type Dispenser struct {
 
    2. `NextLine()` - 与`Next()`类似，也是将游标往下移动一步，但是不同之处在于`NextLine()`仅当游标处于一行的最后一个标记（token）时才移动，而`Next()`则是只要后面还有标记就一定会移动。
 
-   3. `NextArg()` - 与`Next()`类似，同时与`NextLine()`相反。`NextArg()`仅当游标在不一行中最后一个标记时才往后移动一步。
+   3. `NextArg()` - 与`Next()`类似，单与`NextLine()`相反。`NextArg()`仅当游标不在一行中最后一个标记时才往后移动一步。
 
    4. `NextBlock()` - 将游标置于大括号内的第一个标记处。第一次时，只有当下一个标记为左大括号（"{"）时才会执行这一操作，直到遇到右大括号为止（同时返回`false`）。
 
@@ -674,6 +674,64 @@ w.WriteMsg(m)
 // 写完响应之后要返回成功状态码
 return dns.RcodeSuccess, nil
 ```
+#### 常用代码段
+
+1. 获取查询域名和客户端IP
+
+   ```go
+   func (d Xxx) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+   	state := request.Request{W: w, Req: r}
+       // 查询域名
+   	qname := state.Name()
+       // 客户端IP
+       ip := state.IP()
+   }
+   ```
+
+2. 当前插件查询到结果且不再调用下一个插件
+
+   ```go
+   func (d Xxx) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+   	state := request.Request{W: w, Req: r}
+   	qname := state.Name()
+   
+   	log.Infof("qname: %s RemoteIp: %s", qname, state.IP())
+   
+   	var answers []dns.RR
+   
+   	// TODO 省略查询处理，查询后填充 answers 切片
+   
+   	m := new(dns.Msg)
+   	m.SetReply(r)
+       // 标识为权威结果
+   	m.Authoritative = true
+   	m.Answer = answers
+   	if err := w.WriteMsg(m); err != nil {
+   		return dns.RcodeServerFailure, err
+   	}
+   
+       // 返回成功之前一定要写入结果
+   	return dns.RcodeSuccess, nil
+   }
+   ```
+
+3. 当前插件无法处理查询，调用下一个插件
+
+   ```go
+   func (d Xxx) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+   	return plugin.NextOrFailure(d.Name(), d.Next, ctx, w, r)
+   }
+   ```
+
+4. 判断`a.example.com`是否是`example.com`的子域名
+
+   ```go
+   import "github.com/coredns/coredns/plugin"
+   
+   if plugin.Name("example.com.").Matches("a.example.com.") {
+       // true
+   }
+   ```
 
 ## 推荐的`Dockerfile`
 
