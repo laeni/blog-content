@@ -1,12 +1,12 @@
 ---
 title: 从 Let’s Encrypt 申请免费证书并自动续签
 author: 'Laeni'
-tags: SSL, HTTPS, 证书, 安全
+tags: SSL, TLS, HTTPS, 证书, 安全
 date: '2022-11-29'
-updated: '2022-12-03'
+updated: '2023-03-11'
 ---
 
-Let’s Encrypt 是一个证书颁发机构（CA），对外提供[ACME](https://www.rfc-editor.org/rfc/rfc8555)协议的API，可以通过该API申请证书。而可以与ACME协议的API交互的客户端工具有很多，官方列举了一些[比较好的实现](https://letsencrypt.org/zh-cn/docs/client-options/)。这里我们选用其中的[lego](https://github.com/go-acme/lego)工具使用，选它的一个重要原因是该工具使用Go编写，直接到[项目的releases页](https://github.com/go-acme/lego/releases)下载可执行二进制即可使用，并且它不会尝试编辑Web服务器的配置文件，只专注于证书的申请和续期。
+Let’s Encrypt 是一个证书颁发机构（CA），对外提供[ACME](https://www.rfc-editor.org/rfc/rfc8555)协议的API，可以通过该API申请证书。而可以与ACME协议的API交互的客户端工具有很多，官方列举了一些[比较好的实现](https://letsencrypt.org/zh-cn/docs/client-options/)。这里我们选用其中的[lego](https://github.com/go-acme/lego)工具使用，选它的一个重要原因是该工具使用Go编写，直接到[项目的releases页](https://github.com/go-acme/lego/releases)下载可执行二进制即可使用，并且它不会尝试编辑Web服务器的配置文件，只专注于证书的申请和续期，而证书续期完成后可以通过钩子命令来处理一些后续逻辑（比如 reload nginx）。
 
 在`lego`中，除非使用命令行标志`--path`或环境变量`LEGO_PATH`单独指定，否则`lego`将在*当前用户的工作目录中*查找`.lego`命名的目录（即`~/.lego`）。 
 
@@ -141,8 +141,9 @@ EOF
 
 使用`crontab -e`打开任务列表后，添加续签脚本。
 
-```
+```sh
+# 这里实际使用时不能使用环境变量
 36 5 * * * $LEGO_PATH/renew.sh
 ```
 
-> `cron`定时人物上下文默认没有`/usr/local/bin/`环境变量，所以尽量使用全路径。
+> `cron`定时任务上下文默认没有`/usr/local/bin/`环境变量，所以尽量使用全路径。
