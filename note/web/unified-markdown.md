@@ -36,7 +36,7 @@ AST：抽象语法树，如 markdown 的抽象语法树是 mdast，html 的抽�
 
 [**rehype**](https://github.com/rehypejs/rehype) （[*hast*](https://github.com/syntax-tree/hast)） — HTML
 
-[**备注**](https://github.com/remarkjs/remark) （[*mdast*](https://github.com/syntax-tree/mdast)） — Markdown
+[**remark**](https://github.com/remarkjs/remark) （[*mdast*](https://github.com/syntax-tree/mdast)） — Markdown
 
 [**retext**](https://github.com/retextjs/retext) （[*nlcst*](https://github.com/syntax-tree/nlcst)） — 自然语言
 
@@ -45,6 +45,8 @@ AST：抽象语法树，如 markdown 的抽象语法树是 mdast，html 的抽�
 [remark-rehype](https://unifiedjs.com/explore/package/remark-rehype/) - 将 Markdown 转换为 HTML
 
 [remark-toc](https://unifiedjs.com/explore/package/remark-toc/) - 生成目录
+
+[remark-gfm](https://github.com/remarkjs/remark-gfm) - [gfm（GitHub Flavored Markdown）](https://github.github.com/gfm/)是Markdown的方言，该插件将生成GitHub风格的HTML
 
 [rehype-remark](https://unifiedjs.com/explore/package/rehype-remark/) - 将 HTML 转换为 Markdown
 

@@ -3,7 +3,7 @@ title: Linux中一些操作流程及原理（仅备案）
 tags: 'Linux常用操作'
 author: Laeni
 date: '2022-07-28'
-updated: '2022-07-28'
+updated: '2023-03-18'
 ---
 
 ## 关闭`systemd-resolve`监听的53端口
@@ -48,17 +48,11 @@ updated: '2022-07-28'
 ├── cdrom
 ├── data
 ├── dev
-├── etc
-│   └── systemd
-│       └── system/ # 系统级别的 service 定义（一般为安装软件时系统自动生成）
-├── home
-│   └── <user_name>
-│       ├── .config
-│       │   └── systemd/user/ # 用户级别的 service 定义，使用`systemctl --user status xxx.service`操作服务
-│       └── .local
-│           └── bin/  # 用户级别的可执行二进制软件
-├── /lib
-│   └── /systemd/system # 系统级别的 service 定义（一般为系统核心服务）
+├── etc/systemd/system/ # 系统级别的 service 定义（一般为安装软件时系统自动生成）
+├── home/<user_name>/
+│   ├── .config/systemd/user/ # 用户级别的 service 定义，使用`systemctl --user status xxx.service`操作服务
+│   └── .local/bin/  # 用户级别的可执行二进制软件
+├── lib*/ -> usr/lib*/
 ├── media
 ├── mnt
 ├── opt
@@ -67,11 +61,9 @@ updated: '2022-07-28'
 ├── srv
 ├── sys
 ├── tmp
-├── usr
-│   └── local
-│       └── lib
-│           └── systemd
-│               └── system # 系统级别的 service 定义（一般为手动创建）
+├── usr/
+│   ├── lib/systemd/system        # 系统级别的 service 定义（一般为系统核心服务）
+│   └── local/lib/systemd/system/ # 系统级别的 service 定义（一般为手动创建）
 └── var
 ```
 
