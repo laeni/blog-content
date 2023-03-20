@@ -41,10 +41,14 @@ LEGO_PATH=/mnt/share/archive/cert/www/.lego
      -a `# 该选项表示静默接受条款，否则需要交互式输入'Y'显示接受`\
      --path $LEGO_PATH `# 证书存放路径，建议指定，如设置了该环境变量可省略`\
      --email="m@laeni.cn" `# 邮箱，用于紧急情况下发送通知等`\
-     --domains="laeni.cn" --domains="*.laeni.cn" `# 指定域名，多个域名需要多次指定`\
+     --domains="*.laeni.cn" --domains="laeni.cn" `# 指定域名，多个域名需要多次指定`\
      --http `# 启动一个HTTP服务器来提供验证文件`\
      run
    ```
+
+   > 将使用第一个`--domains`的值作为证书的公用名（`CN`），所以如果是申请泛域证书，**建议将泛域放前面**。
+   >
+   > 并且一般情况下，我们希望该泛域名也适用于它的前一级域名，所以也要将该域名加上，否则无法使用前一级域名。
 
 1. 将验证文件写入现有服务器静态目录。
 
@@ -56,7 +60,7 @@ LEGO_PATH=/mnt/share/archive/cert/www/.lego
      -a `# 该选项表示静默接受条款，否则需要交互式输入'Y'显示接受`\
      --path $LEGO_PATH `# 证书存放路径，建议指定，如设置了该环境变量可省略`\
      --email="m@laeni.cn" `# 邮箱，用于紧急情况下发送通知等`\
-     --domains="laeni.cn" --domains="*.laeni.cn" `# 指定域名，多个域名需要多次指定`\
+      --domains="*.laeni.cn" --domains="laeni.cn"`# 指定域名，多个域名需要多次指定`\
      --http `# 启动一个HTTP服务器来提供验证文件`\
      --http.webroot /etc/nginx/html `# 指定WEB服务器根目录，运行时验证文件将写入该目录`\
      run
@@ -80,7 +84,7 @@ LEGO_PATH=/mnt/share/archive/cert/www/.lego
      -a `# 该选项表示静默接受条款，否则需要交互式输入'Y'显示接受`\
      --path $LEGO_PATH `# 证书存放路径，建议指定，如设置了该环境变量可省略`\
      --email="m@laeni.cn" `# 邮箱，用于紧急情况下发送通知等`\
-     --domains="laeni.cn" --domains="*.laeni.cn" `# 指定域名，多个域名需要多次指定`\
+     --domains="*.laeni.cn" --domains="laeni.cn" `# 指定域名，多个域名需要多次指定`\
      --dns alidns `# 指定使用阿里云 DNS 提供商`\
      run
    ```
@@ -129,13 +133,15 @@ ALICLOUD_ACCESS_KEY=$ALICLOUD_ACCESS_KEY ALICLOUD_SECRET_KEY=$ALICLOUD_SECRET_KE
   -a `# 该选项表示静默接受条款，否则需要交互式输入'Y'显示接受`\
   --path $LEGO_PATH `# 证书存放路径，建议指定，如设置了该环境变量可省略`\
   --email="m@laeni.cn" `# 邮箱，用于紧急情况下发送通知等`\
-  --domains="laeni.cn" --domains="*.laeni.cn" `# 指定域名，多个域名需要多次指定`\
+  --domains="*.laeni.cn" --domains="laeni.cn" `# 指定域名，多个域名需要多次指定`\
   --dns alidns `# 指定使用阿里云 DNS 提供商`\
   renew \
   --days 7 `# 只有当证书过期时间小于7天时才续期（默认是30天）`\
   --renew-hook 'docker exec nginx nginx -s reload' `# 续期成功后执行后续脚本，这里续期成功后 reload Nginx.`
 EOF
 ```
+
+> 这里续签时指定的`--domains`选项顺序尽量和申请时一致（第一个必须一致），否则可能会导致续签失败。
 
 ## 定时执行续签脚本
 

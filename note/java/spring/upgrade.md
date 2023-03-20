@@ -8,7 +8,7 @@ updated: '2022-12-01'
 
 简单列举平时常用的一些改造点，以及注意事项。
 
-# SpringBoot 2.2.5 → 2.7.3
+# SpringBoot 2.2.x → 2.7.x
 
 ## POM
 
