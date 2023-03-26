@@ -1,9 +1,9 @@
 ---
-title: 'Java 模块'
+title: 'Java 9 新特性之 Java 模块'
 author: 'Laeni'
-tags: 'Java, 模块, Module, Java 封装性'
+tags: 'Java, 模块, Module, Java 强封装, Java 新特性'
 date: '2023-03-25'
-updated: '2023-03-26'
+updated: '2023-03-27'
 ---
 
 **Java 模块**是 JDK 9 中引入的新特性，它带来的好处有**强封装**、**可靠的配置**（有时候也称“安全性”，即在编译时和运行时进行模块依赖性检查，以确保不会在运行时出现缺失或冲突的依赖关系）、**[可扩展的平台](https://dev.java/learn/modules/intro/#scalable-platform)**。这里需要与我们平时说的 Maven 模块或 Gradle 模块区分开，并且 Java 模块也不是为了替代它们。更多关于 Java 模块的知识请参见[官网中关于模块的部分](https://dev.java/learn/modules)。
@@ -74,7 +74,7 @@ module java.sql {
 }
 ```
 
-如果一个 JAR 是模块化的，则可以在 IDE 的帮助下查看 JAR 中的`module-info.class`文件来查询模块详情，或通过`jar --describe-module --file $FILE`命令查看模块详情。 
+如果一个 JAR 是模块化的，则可以在 IDE 的帮助下查看 JAR 中的`module-info.class`文件来查询模块详情，或通过`jar --describe-module --file $FILE`命令查看模块详情。
 
 > 为什么不将`requires`更改为`imports`来与导出的`exports`对应?
 > 答：因为`requires`针对的是模块，而`exports`针对的是包，且代码中已经使用`import`来导入包了。
@@ -83,17 +83,17 @@ module java.sql {
 
 模块名称与包名称具有相同的规则： 
 
-- 允许使用的字符包括 `A-Z`,`a-z`,`0-9`,`_`,`$`和`.`，其中`.`用作隔开符号。
+- 允许使用的字符包括`A-Z`,`a-z`,`0-9`,`_`,`$`和`.`，其中`.`用作隔开符号。
 - 按照惯例，模块名称都是小写的，并且`$`仅用于机械生成的代码。
 - 名称应该是全球唯一的 
 
-关于模块名称的唯一性，建议与包相同： 选择一个与项目关联的 URL 并将其反转以得出模块名称的第一部分，然后从那里进行优化。 （这意味着这两个示例模块与域 example.com 相关联。） 如果将此过程应用于模块名称和包名称，前者通常是后者的前缀，因为模块比包更通用。 这绝不是必需的，而是表明名称选择得当的指标。 
+关于模块名称的唯一性，建议与包相同： 选择一个与项目关联的 URL 并将其反转以得出模块名称的第一部分，然后从那里进行优化。（这意味着这两个示例模块与域 example.com 相关联。） 如果将此过程应用于模块名称和包名称，前者通常是后者的前缀，因为模块比包更通用。这绝不是必需的，而是表明名称选择得当的指标。
 
 ## requires 依赖
 
 `requires`指令按模块名称列出所有直接依赖项。关于子依赖项中使用`requires transitive`依赖的具有传递性的依赖要不要再次声明将在后续**传递依赖**中讨论。
 
-这里的模块依赖项列表很可能与构建配置中列出的依赖项（比如 Maven 依赖项）非常相似。这通常会引发这样的疑问：模块依赖项是否是多余的或者应该自动生成？首先它不是多余的，因为模块名称不包含版本也不包含构建工具获取 JAR 所需的信息（如组 ID 和工件 ID），这些信息由构建配置列出而不是模块名称。其次，虽然可以通过给定的 JAR 推断出模块名称（更多详细信息参见后面**自动模块**部分），但考虑到对平台模块以及`static`和 `transitive`修饰的模块很复杂，所以不能根据构建配置自动生成模块声明，且模块中**安全性**就是解决某些情况下构建依赖缺失的问题的。但是在未来，可能可以使用模块配置代替构建配置中的依赖项部分，毕竟很多语言（如 Python、Node.js、Golang）都有官方推出的依赖管理系统，而 Java 却没有。
+这里的模块依赖项列表很可能与构建配置中列出的依赖项（比如 Maven 依赖项）非常相似。这通常会引发这样的疑问：模块依赖项是否是多余的或者应该自动生成？首先它不是多余的，因为模块名称不包含版本也不包含构建工具获取 JAR 所需的信息（如组 ID 和工件 ID），这些信息由构建配置列出而不是模块名称。其次，虽然可以通过给定的 JAR 推断出模块名称（更多详细信息参见后面**自动模块**部分），但考虑到对平台模块以及`static`和`transitive`修饰的模块很复杂，所以不能根据构建配置自动生成模块声明，且模块中**安全性**就是解决某些情况下构建依赖缺失的问题的。但是在未来，可能可以使用模块配置代替构建配置中的依赖项部分，毕竟很多语言（如 Python、Node.js、Golang）都有官方推出的依赖管理系统，而 Java 却没有。
 
 ## 导出和打开包
 
@@ -115,15 +115,15 @@ exports javax.sql;
 opens com.example.app.entities;
 ```
 
-这表明`java.sql`导出了一个和模块同名的包以及`javax.sql`包。然而该模块还有其他更多的包，但它们不是其 API 的一部分，使用的人无需关心，所以不导出。`com.example.app`模块不导出包，这是正常的，因为用于启动应用程序的模块一般不会被其他模块依赖，因此没有人调用它，但它打开`com.example.app.entities`包给其他模块通过反射来访问，从名字上看可能是因为它包含其他模块（比如 JPA）想要通过反射与之交互的实体。 
+这表明`java.sql`导出了一个和模块同名的包以及`javax.sql`包。然而该模块还有其他更多的包，但它们不是其 API 的一部分，使用的人无需关心，所以不导出。`com.example.app`模块不导出包，这是正常的，因为用于启动应用程序的模块一般不会被其他模块依赖，因此没有人调用它，但它打开`com.example.app.entities`包给其他模块通过反射来访问，从名字上看可能是因为它包含其他模块（比如 JPA）想要通过反射与之交互的实体。
 
-`exports`和 `opens`指令有对应的[变体 ](https://dev.java/learn/modules/qualified-exports-opens/)允许用于仅将包导出/打开到特定模块，相关内容在后续讨论。
+`exports`和`opens`指令有对应的[变体 ](https://dev.java/learn/modules/qualified-exports-opens/)允许用于仅将包导出/打开到特定模块，相关内容在后续讨论。
 
 根据经验，尝试尽可能少的导出包（就像保持字段私有一样），仅在需要时使方法包可见或公开，以及默认情况下使类包可见，并且仅在另一个包中需要时才公开。这减少了在其他地方可见的代码量，从而降低了复杂性。
 
 ## 使用服务和提供服务
 
-有专门有关[服务](https://dev.java/learn/modules/services/)的主题，但现在可以仅需要了解可以使用服务将 API 的用户与 API 的实现分离，从而更容易在启动应用程序时替换它。如果模块使用类型（接口或类）作为服务，则需要在模块声明中使用`uses`指令指明具体服务，其中包括类的完全限定名称。提供服务的模块也要在它们的模块声明中表达了它们自己的哪些类型可以做到这一点（通常通过实现或扩展它）。 
+有专门关于[服务](#服务)的章节，但现在可以仅需要了解可以使用服务将 API 的使用者与 API 的实现分离，从而更容易在启动应用程序时替换它。如果模块使用类型（接口或类）作为服务，则需要在模块声明中使用`uses`指令指明具体服务，其中包括类的完全限定名称。提供服务的模块也要在它们的模块声明中表达了它们自己的哪些类型可以做到这一点（通常通过实现或扩展它）。
 
 下面是 lib 和 app 两个示例模块：
 
@@ -136,7 +136,7 @@ provides com.example.lib.Service
     with com.example.app.MyService;
 ```
 
-lib 模块使用`Service`，该服务是它自己中的其中一个类，app 模块依赖 lib 模块，并为 lib 模块提供`MyService`。在运行时，lib 模块将访问所有实现/扩展`Service`类型的类，方法是调用`ServiceLoader.load(Service.class)` API。这意味着 lib 模块执行在 app 模块中定义的行为，即使 lib 模块不依赖 app 模块，这对于理清依赖关系并使模块专注于它们的关注点非常有用。 
+lib 模块使用`Service`，该服务是它自己中的其中一个类，app 模块依赖 lib 模块，并为 lib 模块提供`MyService`。在运行时，lib 模块将访问所有实现/扩展`Service`类型的类，方法是调用`ServiceLoader.load(Service.class)` API。这意味着 lib 模块执行在 app 模块中定义的行为，即使 lib 模块不依赖 app 模块，这对于理清依赖关系并使模块专注于它们的关注点非常有用。
 
 # 相关概念
 
@@ -146,7 +146,7 @@ lib 模块使用`Service`，该服务是它自己中的其中一个类，app 模
 
 ## Module Path - 模块路径
 
-*模块路径*是一个与*类路径*平行的新概念，它是工件（JAR 或字节码文件夹）和包含工件的目录的列表。模块系统使用它来定位运行时（JRE）中未找到的所需模块，因此通常是所有应用程序、库和框架模块。模块系统将模块路径上的所有工件（甚至可以是普通的非模块化 JAR）变成模块，使它们变成[自动模块，从而实现增量模块化 ](https://dev.java/learn/modules/automatic-module/)。`javac`和 `java`以及其他与模块相关的命令都理解并能处理模块路径。 
+*模块路径*是一个与*类路径*平行的新概念，它是工件（JAR 或字节码文件夹）和包含工件的目录的列表。模块系统使用它来定位运行时（JRE）中未找到的所需模块，因此通常是所有应用程序、库和框架模块。模块系统将模块路径上的所有工件（甚至可以是普通的非模块化 JAR）变成模块，使它们变成[自动模块，从而实现增量模块化 ](https://dev.java/learn/modules/automatic-module/)。`javac`和`java`以及其他与模块相关的命令都理解并能处理模块路径。
 
 **注：**一个 JAR 是否模块化并不能决定它是否被视为一个模块！因为类路径上的所有 JAR 统一被视为一个[未命名模块](https://dev.java/learn/modules/unnamed-module/) ，模块路径上的所有 JAR 都变成了单个独立的模块。这意味着项目负责人可以决定哪些依赖项最终会成为单独的模块，哪些不会（与依赖项的维护者相反）。
 
@@ -257,7 +257,7 @@ if (ModuleUtils.isModulePresent(this, "com.example.lib")) {
 
 ## 隐含可读性
 
-在常见情况下，模块内部使用的依赖项对外界一无所知。 举个例子，[`java.prefs`](https://docs.oracle.com/en/java/javase/20/docs/api/java.prefs/module-summary.html)模块`requires java.xml`，因为它需要 XML 解析功能，但它自己的 API 既不接受也不返回`java.xml`包中的类型。但是有些时候，依赖项并不完全是内部的，而是存在于模块之间的边界上，在这种情况下，一个模块依赖另一个模块，并在其自己的公共 API 中公开依赖其他模块中的类型。
+在常见情况下，模块内部使用的依赖项对外界一无所知。举个例子，[`java.prefs`](https://docs.oracle.com/en/java/javase/20/docs/api/java.prefs/module-summary.html)模块`requires java.xml`，因为它需要 XML 解析功能，但它自己的 API 既不接受也不返回`java.xml`包中的类型。但是有些时候，依赖项并不完全是内部的，而是存在于模块之间的边界上，在这种情况下，一个模块依赖另一个模块，并在其自己的公共 API 中公开依赖其他模块中的类型。
 
 举个例子：
 
@@ -325,53 +325,204 @@ public class Main {
 
 模块系统的原始解释器包含何时使用隐含可读性的明确建议：
 
-> 通常，如果一个模块导出的包中包含签名引用第二个模块中的包的类型，则第一个模块的声明应包括对第二个模块的`requires transitive`依赖关系。 这将确保依赖于第一个模块的其他模块能够自动读取第二个模块，从而访问该模块导出包中的所有类型。
+> 通常，如果一个模块导出的包中包含签名引用第二个模块中的包的类型，则第一个模块的声明应包括对第二个模块的`requires transitive`依赖关系。这将确保依赖于第一个模块的其他模块能够自动读取第二个模块，从而访问该模块导出包中的所有类型。
 
 但如果一个模块隐含可读，时不是不需要明确`requires`它？比如在`java.sql`模块的例子中（该模块`requires transitive java.logging;`），`java.sql`模块的使用者是否需要依赖`java.logging`模块？毕竟从技术上讲，不需要这样的声明，而且似乎是多余的。
 
 要回答这个问题，我们必须看看`java.sql`模块的使用者究竟如何使用`java.logging`模块中的类型。如果只需要读取`java.logging`模块中的类型，然后调用（例如更改记录器的日志级别，仅此而已），即`java.sql`模块的使用者与`java.logging`模块的交互发生在它们交互的附近（这称之为两个模块之间的**边界**）。但类型的使用范围也可能超越边界，比如，`java.sql`模块的使用者除了与`java.sql`模块交互外可能自身就需要使用`java.logging`模块。
 
-所以，如果隐含读取的类型仅用于其模块（例如*java.sql*）的边界，则建议仅依赖模块（例如*java.logging*）的隐含可读性。 否则，即使不是严格需要，也应该明确`requires`。
+所以，如果隐含读取的类型仅用于其模块（例如*java.sql*）的边界，则建议仅依赖模块（例如*java.logging*）的隐含可读性。否则，即使不是严格需要，也应该明确`requires`。
 
 # [限定`exports`和`opens`](https://dev.java/learn/modules/qualified-exports-opens/)
 
-模块系统允许模块导出和打开包，使外部代码可以访问它们，在这种情况下，每个读取导出/打开模块的模块都可以访问这些包中的类型。这意味着对于一个包，我们必须在强封装或让每个人都可以访问它之间做出选择。然而有时候并不容易在这二者之间作出选择，所以模块系统提供了限定的`exports`和`opens`指令的变体仅授予特定模块访问权限。 
+模块系统允许模块导出和打开包，使外部代码可以访问它们，在这种情况下，每个读取导出/打开模块的模块都可以访问这些包中的类型。这意味着对于一个包，我们必须在强封装或让每个人都可以访问它之间做出选择。然而有时候并不容易在这二者之间作出选择，所以模块系统提供了限定的`exports`和`opens`指令的变体仅授予特定模块访问权限。
 
 ## 限定导出/打开包
 
-`exports`指令可以通过跟`to $MODULES`来*限定*导出范围，`$MODULES`是以逗号分隔的目标模块名称列表。 对于`exports to`指令中指定的模块，包将完全像常规`exports`指令一样可访问。对于其他模块，包将被紧密封装，就好像根本没有`exports`指令一样。`opens`指令也是如此，也可以用`to $MODULES`具有相同的效果：对于目标模块，包是开放的；对于其他模块，它被强烈封装。 
+`exports`指令可以通过跟`to $MODULES`来*限定*导出范围，`$MODULES`是以逗号分隔的目标模块名称列表。对于`exports to`指令中指定的模块，包将完全像常规`exports`指令一样可访问。对于其他模块，包将被紧密封装，就好像根本没有`exports`指令一样。`opens`指令也是如此，也可以用`to $MODULES`具有相同的效果：对于目标模块，包是开放的；对于其他模块，它被强烈封装。
 
 JDK 本身就有很多限定导出的示例，比如`java.xml`模块。
 
 关于编译的两个说明： 
 
-- 如果声明了限定导出/打开的目标模块在编译时找不到，编译器会发出警告。但不会报错退出，因为提到的目标模块对编译来说不是必需的。 
-- 不允许同时对一个包中使用`exports`和`exports to`指令，否则会导致编译错误。 
+- 如果声明了限定导出/打开的目标模块在编译时找不到，编译器会发出警告。但不会报错退出，因为提到的目标模块对编译来说不是必需的。
+- 不允许同时对一个包中使用`exports`和`exports to`指令，否则会导致编译错误。
 
 并且有两个细节需要指出：
 
-- 目标模块可以依赖导出/打开的模块，从而创建一个循环。 
-- 每当新模块需要访问限定的导出包时，都需要更改包所属的模块，以便提供对这个新模块的访问权限。虽然让导出模块控制谁可以访问包就是限定导出的意义，但这样做可能很麻烦。 
+- 目标模块可以依赖导出/打开的模块，从而创建一个循环。
+- 每当新模块需要访问限定的导出包时，都需要更改包所属的模块，以便提供对这个新模块的访问权限。虽然让导出模块控制谁可以访问包就是限定导出的意义，但这样做可能很麻烦。
 
 ## 何时使用限定导出
 
-如前所述，限定导出的目的是控制哪些模块可以访问相关包。但什么时候使用限定导出？一般来说，如果某个包需要在一组模块之间共享，但不希望在除这些模块之外公开时使用（比如一个框架包含多个包，其中有一个`utli`包，而这个包只希望在这个框架之间使用）。 
+如前所述，限定导出的目的是控制哪些模块可以访问相关包。但什么时候使用限定导出？一般来说，如果某个包需要在一组模块之间共享，但不希望在除这些模块之外公开时使用（比如一个框架包含多个包，其中有一个`utli`包，而这个包只希望在这个框架之间使用）。
 
 这与引入模块系统之前隐藏工具类的问题是对称的。一旦工具类必须跨包可用，它就必须是公开的，但在 Java 9 之前，这意味着所有其他代码都可以访问它。强封装解决了这个问题，它允许我们使公共类在模块外不可访问。
 
-现在我们处于类似的情况，我们想要隐藏一个包（以前是一个类）但是一旦它必须跨模块（以前是一个包）可用，它就必须被导出（公开），因此可以被所有其他模块（以前是所有其他类）访问，这是适合使用限定的的地方。 限定导出允许模块在它们之间共享包而不使其普遍可用。这对于包含多个模块并希望在客户端无法使用的情况下共享代码的库和框架非常有用。对于想要限制对特定 API 的依赖性的大型应用程序也会派上用场。 
+现在我们处于类似的情况，我们想要隐藏一个包（以前是一个类）但是一旦它必须跨模块（以前是一个包）可用，它就必须被导出（公开），因此可以被所有其他模块（以前是所有其他类）访问，这是适合使用限定的的地方。限定导出允许模块在它们之间共享包而不使其普遍可用。这对于包含多个模块并希望在客户端无法使用的情况下共享代码的库和框架非常有用。对于想要限制对特定 API 的依赖性的大型应用程序也会派上用场。
 
 ## 何时使用限定打开 
 
 限定导出可以防止同事和用户引入内部 API，而限定打开的目标模块通常是框架。无论你是面向所有模块打开一个包还是仅面向 Hibernate 打开，Spring 都不会根据它启动。因此，限定打开的适用场景比限定导出的场景小得多。
 
-限定打开的一个缺点是，在框架开始采用基于`Lookup`/ `VarHandle`的方法（允许“转发”反射访问）之前，必须始终将包打开到执行实际反射的确切模块。因此，在规范和实现分开的情况下（例如，JPA 和 Hibernate），您可能会发现自己必须打开实体包到实现（例如 Hibernate 模块）而不是 API（例如 JPA 模块）。如果你的项目试图坚持标准并避免在代码中提及所有实现，那将是不幸的。
+限定打开的一个缺点是，在框架开始采用基于`Lookup`/`VarHandle`的方法（允许“转发”反射访问）之前，必须始终将包打开到执行实际反射的确切模块。因此，在规范和实现分开的情况下（例如，JPA 和 Hibernate），您可能会发现自己必须打开实体包到实现（例如 Hibernate 模块）而不是 API（例如 JPA 模块）。如果你的项目试图坚持标准并避免在代码中提及所有实现，那将是不幸的。
 
-总而言之，打开反射包的一个好的默认方法是不限定访问权限，除非您的项目对自己的代码使用大量反射，在这种情况下，其好处与限定导出的好处相似。 只对框架开放似乎不值得麻烦，并且在需要针对特定实现模块的情况下可能应该完全避免。 
+总而言之，打开反射包的一个好的默认方法是不限定访问权限，除非您的项目对自己的代码使用大量反射，在这种情况下，其好处与限定导出的好处相似。只对框架开放似乎不值得麻烦，并且在需要针对特定实现模块的情况下可能应该完全避免。
 
 综上所述，打开包进行反射的一个很好的方法是默认不限定访问权限，除非项目对其自己的代码使用大量反射，在这种情况下，其好处与限定导出的好处相似。而只对框架打开是没必要的，特别是在规范与实现分离的情绪下更是应该避免这样做。
 
 # 服务
+
+在 Java 中，通常将 API 建模为接口（有时是抽象类），然后根据情况选择最佳实现。理想情况下，API 的使用者与实现完全分离，这意味着它们之间没有直接依赖关系。Java 的服务加载器 API 允许将这种方法应用于 JAR（模块化或非模块化），并且模块系统将其作为一等概念与模块声明中的`uses`和`provides`指令集成在一起。
+
+## Java 模块系统中的服务 
+
+### 问题示例
+
+让我们从一个*在三个模块中使用这三种类型*的示例开始： 
+
+- 类`Main`在`com.example.app`中 
+- 接口`Service`在`com.example.api`中
+- 类`Implementation`（实现`Service`接口) 在`com.example.impl`中 
+
+`Main`想用`Service`，但需要创建`Implementation`才能得到`Service`实例： 
+
+```java
+public class Main {
+
+    public static void main(String[] args) {
+        Service service = new Implementation();
+        use(service);
+    }
+
+    private static void use(Service service) {
+        // ...
+    }
+
+}
+```
+
+这导致以下模块声明： 
+
+```java
+module com.example.api {
+    exports com.example.api;
+}
+
+module com.example.impl {
+    requires com.example.api;
+    exports com.example.impl;
+}
+
+module com.example.app {
+    // dependency on the API: ✅
+    requires com.example.api;
+    // dependency on the implementation: ⚠️
+    requires com.example.impl;
+}
+```
+
+如您所见，使用接口来分离 API 的使用者和提供者的挑战在于：在某些时候必须实例化特定的实现。如果这是作为常规构造函数调用发生的（如`Main`)，则会创建对实现的依赖关系（`com.example.app`中的`requires com.example.impl;`），从而创建了两个模块之间的依赖。这就是服务解决的问题。 
+
+### 解决方案之服务定位器模式
+
+Java 通过实现[服务定位器模式](https://en.wikipedia.org/wiki/Service_locator_pattern)来解决此问题，其中[`ServiceLoader`](https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ServiceLoader.html)类充当中央注册表（这是它的工作原理）。 
+
+服务是一种可访问的类型（不一定是接口；抽象类甚至具体类也可以），一个模块想要使用它，另一个模块提供以下实例：
+
+- *使用*服务的模块必须在其模块描述符中使用`uses $SERVICE`指令来表达其要求，其中`$SERVICE`是服务类型的完全限定名称。
+- *提供服务*的模块必须使用`provides $SERVICE with $PROVIDER`指令来进行申明，其中`$SERVICE`与`uses`指令中的类型相同，并且`$PROVIDER`是另外一个类的完全限定名称，该类需要满足以下要求：
+  - *扩展或实现的具体*`$SERVICE`类并且有一个公共的、无参数的构造函数（称为*提供者构造函数* ） 
+  - *或*具有公共、静态、无参数的`provide`方法，该方法返回值类型必须扩展或实现`$SERVICE`类型（称为 *提供者方法* ）
+
+在运行时，依赖模块可以使用`ServiceLoader`类并调用`ServiceLoader.load($SERVICE.class)`来获取服务的所有提供的实现，然后模块系统将返回一个`ServiceLoader<$SERVICE>`。您可以通过各种方式使用它来访问服务提供商，[`ServiceLoader`](https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/ServiceLoader.html)的*Javadoc*对此进行了详细说明（与服务相关的所有其他内容）。 
+
+### 解决方案示例
+
+以下是我们之前研究的三个类和模块如何使用服务。我们从模块声明开始：
+
+```java
+module com.example.api {
+    exports com.example.api;
+}
+
+module com.example.impl {
+    requires com.example.api;
+
+    provides com.example.api.Service
+        with com.example.impl.Implementation;
+}
+
+module com.example.app {
+    requires com.example.api;
+
+    uses com.example.api.Service;
+}
+```
+
+请注意`com.example.app`不再需要`com.example.impl`。相反，它声明它使用`Service`，并且`com.example.impl`声明它提供了`Implementation`。此外，`com.example.impl`不再导出`com.example.impl`包。服务加载器不要求服务实现可以在模块外部访问，如果该包中的其他类在其他类不需要导出，则我们可以不导出它。这是服务的额外好处，因为它可以减少模块的 API 面。 
+
+就是这样`Main`可以得到一个`Service`示例: 
+
+```java
+public class Main {
+
+    public static void main(String[] args) {
+        Service service = ServiceLoader
+            .load(Service.class)
+            .findFirst()
+            .orElseThrow();
+        use(service);
+    }
+
+    private static void use(Service service) {
+        // ...
+    }
+
+}
+```
+
+### 一些 JDK 服务 
+
+JDK 本身也使用服务。   例如， *java.sql模块使用* 包含 JDBC API 的 `java.sql.Driver`作为服务： 
+
+```java
+module java.sql {
+    // requires...
+    // exports...
+    uses java.sql.Driver;
+}
+```
+
+这也展示了一个模块可以使用它自己的一种类型作为服务。 
+
+JDK 中服务的另一个示例性使用是 `java.lang.System.LoggerFinder`. 这是 API 的一部分，允许用户将 JDK 的日志消息（而不是运行时的！）通过管道传输到他们选择的日志框架（例如，Log4J 或 Logback）中。 简而言之，JDK 不是写入标准输出，而是使用 `LoggerFinder`创造 `Logger`实例，然后用它们记录所有消息。 因为它使用 `LoggerFinder`作为一项服务，日志框架可以提供它的实现。 
+
+```java
+module com.example.logger {
+    // `LoggerFinder` is the service interface
+    provides java.lang.System.LoggerFinder
+        with com.example.logger.ExLoggerFinder;
+}
+
+public class ExLoggerFinder implements System.LoggerFinder {
+
+    // `ExLoggerFinder` must have a parameterless constructor
+
+    @Override
+    public Logger getLogger(String name, Module module) {
+        // `ExLogger` must implement `Logger`
+        return new ExLogger(name, module);
+    }
+
+}
+```
+
+## 模块解析期间的服务 
+
+如果您曾经使用命令行选项启动过简单的模块化应用程序 `--show-module-resolution`并观察模块系统究竟在做什么，您可能会对已解决的平台模块数量感到惊讶。   对于一个足够简单的应用程序，唯一的平台模块应该是 *java.base*  ，也许还有一两个，那么为什么还有那么多其他的呢？   服务就是答案。 
+
+从 [模块系统基础知识 ](https://dev.java/learn/modules/intro/)中记住，只有在模块解析期间进入图形的模块在运行时才可用。   为确保服务的所有提供者都是这种情况，解决过程需要 `uses`和 `provides`考虑到指令。   因此，除了跟踪依赖关系之外，一旦它解析了使用服务的模块，它还会将所有模块添加到提供该服务的图中。   这个过程称为 *服务绑定* 。 
 
 // TODO [模块与服务解耦](https://dev.java/learn/modules/services/)
 
