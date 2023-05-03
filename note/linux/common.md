@@ -38,35 +38,6 @@ updated: '2023-03-18'
 
    注意尽量不要将其关闭，甚至是禁用，因为禁用后可能导致网络出现问题（我有一次将云服务器的该服务禁用掉，连阿里云救援模式也没用，差点就重装系统了）。
 
-
-
-## Liunx目录规范
-
-```shell
-/
-├── boot
-├── cdrom
-├── data
-├── dev
-├── etc/systemd/system/ # 系统级别的 service 定义（一般为安装软件时系统自动生成）
-├── home/<user_name>/
-│   ├── .config/systemd/user/ # 用户级别的 service 定义，使用`systemctl --user status xxx.service`操作服务
-│   └── .local/bin/  # 用户级别的可执行二进制软件
-├── lib*/ -> usr/lib*/
-├── media
-├── mnt
-├── opt
-├── proc
-├── run
-├── srv
-├── sys
-├── tmp
-├── usr/
-│   ├── lib/systemd/system        # 系统级别的 service 定义（一般为系统核心服务）
-│   └── local/lib/systemd/system/ # 系统级别的 service 定义（一般为手动创建）
-└── var
-```
-
 ## 其他
 
 - [ssh 端口转发 - 简书 (jianshu.com)](https://www.jianshu.com/p/6eb87b48d465)

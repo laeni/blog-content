@@ -34,7 +34,18 @@
    $ sudo systemctl enable auto_mount_nfs.service --now
    ```
 
-4. 信任自签名证书
+4. NFS 相关权限设置
+
+   由于需要在不同系统（Mac和Linux）上挂载相同的 NFS 目录，所以如果不进行设置会出现 Mac 上创建的文件无法在 Linux 上修改，Linux 创建的 Mac 也无法修改，所以需要将 Linux 用户添加到 Mac 用户所属的组。
+
+   ```sh
+   $ umask 0002 # Ubuntu 默认是该值，如果不是建议设置为该值
+   $ usermod -aG dialout $(whoami) # 组名不一定是 dialout，只要是组 ID 为 501 即可
+   ```
+
+   > Mac 中用户组的组ID为`501`，而 Ubuntu 中，ID 为`501`的用户组为`dialout`，所以直接将当前用户附加到改组即可，如果不存在则创建一个 ID 为 `501` 的组来使用即可。
+
+5. 信任自签名证书
 
    由于有些服务器只是自己用，但是为了安全所以自己签发了证书，所以需要信任根证书。
 
@@ -50,21 +61,21 @@
 
    > 这里只添加了系统和nssdb，如果需要在java中使用，则需要再将根证书添加到java证书库中。
 
-5. 远程ssh登陆
+6. 远程ssh登陆
 
    ```sh
    $ sudo apt-get install openssh-server
    ```
 
-6. flameshot（火焰截图）
+7. flameshot（火焰截图）
 
    应用商店(snap)
 
-7. Edge
+8. Edge
 
    官方下载安装包进行安装
 
-8. qqmusic
+9. qqmusic
 
    1. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
 
@@ -86,15 +97,15 @@
       修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
       修改后可能需要重启才生效
 
-9. dbeawer-ce
+10. dbeawer-ce
 
    [官网](https://dbeaver.io/download/)下载安装`Linux Debian package`包安装.
 
-10. draw.io
+11. draw.io
 
     https://github.com/jgraph/drawio-desktop/releases
 
-11. WPS
+12. WPS
 
    [官网](https://www.wps.cn/product/wpslinux)下载安装
 
