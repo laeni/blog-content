@@ -3,7 +3,7 @@ title: Sublime Text 常用操作（主要是快捷键）
 author: Laeni
 tags: Sublime Text, 文本编辑器
 date: 2023-05-03
-updated: 2023-05-03
+updated: 2023-05-04
 ---
 
 # 快捷键
@@ -97,19 +97,16 @@ updated: 2023-05-03
 
 # 可能用到的插件
 
-ChineseLocalizations - 简体中文语言。
-
-HTMLBeautify - 格式化HTML。
-
-AutoPEP8 - 格式化Python代码。
-
-Alignment - 进行智能对齐。
-
-BracketHighlighter - 插件以高亮显示配对括号以及当前光标所在区域
+- ChineseLocalizations - 简体中文语言。
+- Terminus - 终端
+- HTMLBeautify - 格式化HTML。
+- AutoPEP8 - 格式化Python代码。
+- Alignment - 进行智能对齐。
+- BracketHighlighter - 插件以高亮显示配对括号以及当前光标所在区域
 
 # 其他
 
-Sublime Text 有大量[第三方主题](https://sublime.wbond.net/browse/labels/theme)。
+Sublime Text [第三方主题](https://sublime.wbond.net/browse/labels/theme)。
 
 # 参考
 
