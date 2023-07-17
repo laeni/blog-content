@@ -14,3 +14,6 @@ tags: ["API", "接口"]
 
 表单、Body(Json/XML...)
 
+##  参考文档
+
+- [API 设计中的最佳实践](https://swagger.io/resources/articles/best-practices-in-api-design/)
