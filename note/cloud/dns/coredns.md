@@ -93,14 +93,14 @@ CoreDNS 在配置中支持环境变量。
 
 ### 服务块 Server Blocks
 
-每个服务块（Server Block）以server应该服务的zones开头。在zone名字或者zone列表名（以空格分隔）之后，一个服务块以大括号作为开头和结束。
+每个服务块（Server Block）server应该以服务的zones开头。在zone名字或者zone列表名（以空格分隔）之后，一个服务块以大括号作为开头和结束。
 
 ```
 a.example.com b.example.com {
     # Plugins defined here.
 }
 
-.example.com {
+c.example.com {
 	  # Plugins defined here.
 }
 ```
@@ -170,7 +170,7 @@ dns://.:1053 {
 }
 ```
 
-下面的 Corefile 设置 4 zones 运行于2个不同的端口：
+下面的 Corefile 设置 4 个 zones 运行于2个不同的端口：
 
 ```corefile
 coredns.io:5300 {
