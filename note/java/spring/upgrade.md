@@ -1,9 +1,9 @@
 ---
-title: SpringBoot 版本升级注意事项
+title: Spring 版本升级注意事项
 tags: 'SpringBoot, SpringCloud, Spring'
 author: Laeni
 date: '2022-12-01'
-updated: '2022-12-01'
+updated: '2023-07-17'
 ---
 
 简单列举平时常用的一些改造点，以及注意事项。
@@ -121,6 +121,7 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
    		<filter-class>com.iboxchain.pub.xlog.core.filter.CidFilter</filter-class>
    		<init-param>
    			<param-name>xlog.staticResourcePatterns</param-name>
+   			<!-- TODO 需要根据实际系统情况列出不打印日志的接口路径，这些接口路径一般是涉及二进制的，如图片等 -->
    			<param-value>/webjars/**,/**/*.jpeg,/**/*.jpg,/**/*.png,/**/*.ico,/**/*.js,/**/*.css,/**/*.gif,/**/*.woff</param-value>
    		</init-param>
    		<init-param>
@@ -133,8 +134,8 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
    			<param-value>10240</param-value>
    		</init-param>
    		<init-param>
-   			<!-- 当前应用名称，必选项-->
    			<param-name>xlog.name</param-name>
+   			<!-- TODO 当前应用名称，建议填写 context-path 值，因为打印日志时会将其拼接到请求路径前面 -->
    			<param-value>APP_NAME</param-value>
    		</init-param>
    	</filter>
@@ -150,15 +151,186 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
 
    > 注意将`xlog.name`修改为 URL 前缀（一般为项目名），打印日志的时候会拼接在路径的最前面。
 
-3. `src/main/resources/logback.xml`
+3. `com.xxx.log.ColorConverter`
+
+   ```java
+   package com.xxx.log;
+   
+   import ch.qos.logback.classic.Level;
+   import ch.qos.logback.classic.spi.ILoggingEvent;
+   import ch.qos.logback.core.pattern.CompositeConverter;
+   
+   import java.util.Collections;
+   import java.util.HashMap;
+   import java.util.Map;
+   
+   /**
+    * 拷贝自SpringBoot.
+    */
+   public class ColorConverter extends CompositeConverter<ILoggingEvent> {
+   
+       private static final String ENCODE_JOIN = ";";
+   
+       private static final String ENCODE_START = "\033[";
+   
+       private static final String ENCODE_END = "m";
+   
+       private static final String RESET = "0;" + AnsiColor.DEFAULT;
+   
+       private static final Map<String, AnsiElement> ELEMENTS;
+   
+       static {
+           Map<String, AnsiElement> ansiElements = new HashMap<>();
+           ansiElements.put("faint", AnsiStyle.FAINT);
+           ansiElements.put("red", AnsiColor.RED);
+           ansiElements.put("green", AnsiColor.GREEN);
+           ansiElements.put("yellow", AnsiColor.YELLOW);
+           ansiElements.put("blue", AnsiColor.BLUE);
+           ansiElements.put("magenta", AnsiColor.MAGENTA);
+           ansiElements.put("cyan", AnsiColor.CYAN);
+           ELEMENTS = Collections.unmodifiableMap(ansiElements);
+       }
+   
+       private static final Map<Integer, AnsiElement> LEVELS;
+   
+       static {
+           Map<Integer, AnsiElement> ansiLevels = new HashMap<>();
+           ansiLevels.put(Level.ERROR_INTEGER, AnsiColor.RED);
+           ansiLevels.put(Level.WARN_INTEGER, AnsiColor.YELLOW);
+           LEVELS = Collections.unmodifiableMap(ansiLevels);
+       }
+   
+       @Override
+       protected String transform(ILoggingEvent event, String in) {
+           AnsiElement element = ELEMENTS.get(getFirstOption());
+           if (element == null) {
+               // Assume highlighting
+               element = LEVELS.get(event.getLevel().toInteger());
+               element = (element != null) ? element : ELEMENTS.get("green");
+           }
+           return toAnsiString(in, element);
+       }
+   
+       private String toAnsiString(String in, AnsiElement element) {
+           StringBuilder sb = new StringBuilder();
+           buildEnabled(sb, new Object[]{element, in});
+           return sb.toString();
+       }
+   
+       private static void buildEnabled(StringBuilder sb, Object[] elements) {
+           boolean writingAnsi = false;
+           boolean containsEncoding = false;
+           for (Object element : elements) {
+               if (element instanceof AnsiElement) {
+                   containsEncoding = true;
+                   if (!writingAnsi) {
+                       sb.append(ENCODE_START);
+                       writingAnsi = true;
+                   }
+                   else {
+                       sb.append(ENCODE_JOIN);
+                   }
+               }
+               else {
+                   if (writingAnsi) {
+                       sb.append(ENCODE_END);
+                       writingAnsi = false;
+                   }
+               }
+               sb.append(element);
+           }
+           if (containsEncoding) {
+               sb.append(writingAnsi ? ENCODE_JOIN : ENCODE_START);
+               sb.append(RESET);
+               sb.append(ENCODE_END);
+           }
+       }
+   
+       interface AnsiElement {
+           @Override
+           String toString();
+       }
+       enum AnsiStyle implements AnsiElement {
+           NORMAL("0"),
+           BOLD("1"),
+           FAINT("2"),
+           ITALIC("3"),
+           UNDERLINE("4");
+   
+           private final String code;
+   
+           AnsiStyle(String code) {
+               this.code = code;
+           }
+   
+           @Override
+           public String toString() {
+               return this.code;
+           }
+       }
+       enum AnsiColor implements AnsiElement {
+           DEFAULT("39"),
+           BLACK("30"),
+           RED("31"),
+           GREEN("32"),
+           YELLOW("33"),
+           BLUE("34"),
+           MAGENTA("35"),
+           CYAN("36"),
+           WHITE("37"),
+           BRIGHT_BLACK("90"),
+           BRIGHT_RED("91"),
+           BRIGHT_GREEN("92"),
+           BRIGHT_YELLOW("93"),
+           BRIGHT_BLUE("94"),
+           BRIGHT_MAGENTA("95"),
+           BRIGHT_CYAN("96"),
+           BRIGHT_WHITE("97");
+   
+           private final String code;
+   
+           AnsiColor(String code) {
+               this.code = code;
+           }
+   
+           @Override
+           public String toString() {
+               return this.code;
+           }
+   
+       }
+   }
+   
+4. `com.xxx.log.ExtendedWhitespaceThrowableProxyConverter`
+
+   ```java
+   package com.xxx.log;
+   
+   import ch.qos.logback.classic.pattern.ExtendedThrowableProxyConverter;
+   import ch.qos.logback.classic.spi.IThrowableProxy;
+   import ch.qos.logback.core.CoreConstants;
+   
+   public class ExtendedWhitespaceThrowableProxyConverter extends ExtendedThrowableProxyConverter {
+   
+       @Override
+       protected String throwableProxyToString(IThrowableProxy tp) {
+           return CoreConstants.LINE_SEPARATOR + super.throwableProxyToString(tp) + CoreConstants.LINE_SEPARATOR;
+       }
+   
+   }
+   ```
+
+5. `src/main/resources/logback.xml`
 
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
    <configuration scan="false">
-       <conversionRule conversionWord="clr" converterClass="com.ips.rcms.log.ColorConverter" />
-       <conversionRule conversionWord="wEx" converterClass="com.ips.rcms.log.ExtendedWhitespaceThrowableProxyConverter" />
+       <!-- TODO 这两个转换器复制自SpringBoot，比如控制台带颜色输出，如不需要可以不配置 -->
+       <conversionRule conversionWord="clr" converterClass="com.xxx.log.ColorConverter" />
+       <conversionRule conversionWord="wEx" converterClass="com.xxx.log.ExtendedWhitespaceThrowableProxyConverter" />
    
        <!-- region property -->
+   		<!-- TODO 当前配置会将日志和 Tomcat 日志打印到一起，也是推荐配置 -->
        <property name="log.base" value="../logs/rcms" />
        <property name="threshold" value="1" />
        <property name="queueSize" value="256" />
@@ -294,6 +466,7 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
            <queueSize>${queueSize}</queueSize>
            <appender-ref ref="error" />
        </appender>
+   		<!-- TODO 根据自身系统实际情况增加或删除 -->
        <appender name="etl" class="ch.qos.logback.core.rolling.RollingFileAppender">
            <file>${log.base}/etl/etl${suffix}</file>
            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -310,6 +483,7 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
                <charset>UTF-8</charset>
            </encoder>
        </appender>
+   		<!-- TODO 根据自身系统实际情况增加或删除 -->
        <appender name="mq" class="ch.qos.logback.core.rolling.RollingFileAppender">
            <file>${log.base}/mq/mq${suffix}</file>
            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -335,13 +509,14 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
        <logger name="access" additivity="true">
            <appender-ref ref="access" />
        </logger>
-       <!-- 一般除了 interface 和 access 之外可以根据实际情况分开打印 -->
        <logger name="remote" additivity="true">
            <appender-ref ref="async-remote" />
        </logger>
+   		<!-- TODO 根据自身系统实际情况增加或删除 -->
        <logger name="etl" additivity="true">
            <appender-ref ref="etl" />
        </logger>
+   		<!-- TODO 根据自身系统实际情况增加或删除 -->
        <logger name="mq" additivity="true">
            <appender-ref ref="mq" />
        </logger>
@@ -354,7 +529,7 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
            <appender-ref ref="async-app" />
            <!-- 特殊情况（如容器或开发调试）需要将日志输出到控制台 -->
            <appender-ref ref="CONSOLE" />
-           <!-- 为了快速观察是否有异常（比如巡检），将 WARN 级别以上的日志输出一份的单独的地方 -->
+           <!-- 为了快速观察是否有异常（比如巡检），将 WARN 级别以上的日志输出一份到单独的地方 -->
            <appender-ref ref="async-error" />
        </root>
    </configuration>

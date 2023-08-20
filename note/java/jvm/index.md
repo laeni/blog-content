@@ -62,6 +62,13 @@ jcmd 操作 NMT 选项如下表所示：
 > - NMT 默认打印的报告是 KB 来进行呈现的，为了满足我们不同的需求，我们可以使用 `scale=MB | GB` 来更加直观的打印数据。
 > - 创建 baseline 之后使用 diff 功能可以很直观地对比出两次 NMT 数据之间的差距。
 
+# 堆栈分析相关文档
+
+- [(58条消息) 获取JVM堆内存转储的常用方法_jmap dump内存的命令是_铁锚的博客-CSDN博客](https://blog.csdn.net/renfufei/article/details/108785603)
+- [(58条消息) Eclipse Memory Analyzer(MAT)使用方法_memoryanalyzer怎么使用_瓜头居的博客-CSDN博客](https://blog.csdn.net/lgd0602/article/details/123593284)
+- [内存溢出排查基本步骤 - 老王子H - 博客园 (cnblogs.com)](https://www.cnblogs.com/laowz/p/10096757.html)
+- 
+
 # 相关文档
 
 - [Java 语言和虚拟机规范](https://docs.oracle.com/javase/specs/index.html)

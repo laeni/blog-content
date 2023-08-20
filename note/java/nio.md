@@ -173,6 +173,8 @@ Selector允许单线程处理多个 Channel。如果你的应用打开了多个�
 
 要使用Selector，得向Selector注册Channel，然后调用它的select()方法。这个方法会一直阻塞到某个注册的通道有事件就绪。一旦这个方法返回，线程就可以处理这些事件，事件的例子有如新连接进来，数据接收等。
 
+
+
 ## 概览、组件
 
 - 一个服务器 handler：这个组件实现了服务器的业务逻辑，决定了连接创建后和接收到信息后该如何处理
@@ -201,7 +203,118 @@ Selector允许单线程处理多个 Channel。如果你的应用打开了多个�
 
 #### ChannelInboundHandlerAdapter
 
+# Netty 常用示例代码
 
+1. 服务端监听端口连接并处理消息
+
+   ```java
+   public class DiscardServer {
+       public static void main(String[] args) throws Exception {
+           // NioEventLoopGroup 是一个处理 I/O 操作的多线程事件循环。Netty为不同类型的传输提供了各种EventLoopGroup实现。
+           // 在这个例子中，我们正在实现一个服务器端应用程序，因此将使用两个NioEventLoopGroup。
+           // 第一个，通常称为“boss”，接受传入连接。第二个，通常称为“worker”，一旦 boss 接受连接并将接受的连接注册给worker，就会处理所接受连接的流量。
+           // 使用多少线程以及如何将它们映射到创建的通道取决于 EventLoopGroup 实现，甚至可以通过构造函数进行配置。
+           EventLoopGroup bossGroup = new NioEventLoopGroup();
+           EventLoopGroup workerGroup = new NioEventLoopGroup();
+   
+           try {
+               // ServerBootstrap 是设置服务器的辅助类。您可以直接使用 Channel 设置服务器。但是，请注意，这是一个繁琐的过程，在大多数情况下您不需要这样做。
+               ServerBootstrap b = new ServerBootstrap();
+               b.group(bossGroup, workerGroup)
+                       // 在这里，我们指定使用 NioServerSocketChannel 类，该类用于实例化新 Channel 以接受传入连接
+                       .channel(NioServerSocketChannel.class)
+                       // 此处指定的处理程序将始终由新接受的 Channel 进行评估。ChannelInitializer 是一个特殊的处理程序，旨在帮助用户配置新 Channel道。
+                       // 您很可能希望通过 ChannelPipeline 添加一些 Channel 处理程序（例如 DiscardServerHandler 实现网络应用程序）来配置新通道的通道管道。
+                       // 随着应用程序变得复杂，您很可能会向管道添加更多处理程序，并最终将此匿名类提取到顶级类中。
+                       .childHandler(new ChannelInitializer<SocketChannel>() {
+                           @Override
+                           public void initChannel(SocketChannel ch) {
+                               ch.pipeline().addLast(new DiscardServerHandler());
+                           }
+                       })
+                       // 您还可以设置特定于 Channel 实现的参数。
+                       // 我们正在编写一个 TCP/IP 服务器，因此我们可以设置套接字选项，例如 tcpNoDelay 和 keepAlive.
+                       .option(ChannelOption.SO_BACKLOG, 128)
+                       // 你注意到了 option() 和 childOption() 吗?
+                       // option() 是为了 NioServerSocketChannel 接受传入连接。
+                       // childOption() 是为了父 Channel 接受 ServerChannel, 在本例中为 NioSocketChannel。
+                       .childOption(ChannelOption.SO_KEEPALIVE, true);
+   
+               // 现在准备好了，剩下的就是绑定到端口并启动服务器。在这里，我们绑定到机器中的所有 NIC（网络接口卡）的 8080 端口。您现在可以调用 bind() 方法多次（使用不同的绑定地址）
+               // 绑定并开始接受传入连接.
+               ChannelFuture f = b.bind(8080).sync();
+   
+               // 等到服务器套接字关闭
+               // 在此示例中，这不会发生，但您可以正常关闭服务器。
+               f.channel().closeFuture().sync();
+           } finally {
+               workerGroup.shutdownGracefully();
+               bossGroup.shutdownGracefully();
+           }
+       }
+   }
+   ```
+
+2. 丢弃消息
+
+   ```java
+   public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
+       @Override
+       public void channelRead(ChannelHandlerContext ctx, Object msg) {
+           ByteBuf in = (ByteBuf) msg;
+           try {
+               // 可以简化为：System.out.println(in.toString(io.netty.util.CharsetUtil.US_ASCII))
+               while (in.isReadable()) {
+                   System.out.print((char) in.readByte());
+                   System.out.flush();
+               }
+           } finally {
+               // 静静地丢弃接收到的数据。可以替换为 ReferenceCountUtil.release(msg);
+               in.release();
+           }
+       }
+   }
+   ```
+
+3. 向客户端发送接收到的消息
+
+   ```java
+   public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
+       @Override
+       public void channelRead(ChannelHandlerContext ctx, Object msg) {
+           // ChannelHandlerContext 对象提供各种操作，使您能够触发各种 I/O 事件和操作。
+           // 在这里，我们调用以逐字写入收到的消息。请注意，与示例中不同，我们没有发布收到的消息。这是因为 Netty 在写到电线时会为您释放它。
+           ctx.write(msg);
+           // ctx.write(Object) 不会将消息写出到线路上。它在内部缓冲，然后通过 ctx.flush() 冲洗到电线上。
+           // 或者，可以简化为: ctx.writeAndFlush(msg)
+           ctx.flush();
+       }
+   }
+   ```
+
+4. 向客户端发送自定义消息（本例为`int`）
+
+   ```java
+   public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
+       @Override
+       public void channelActive(final ChannelHandlerContext ctx) {
+           // 要发送新消息，我们需要分配一个新的缓冲区，其中包含该消息。我们将写入一个 32 位整数，因此我们需要一个容量至少为 4 字节的 ByteBuf。
+           // 通过获取当前的字节分配器 ChannelHandlerContext.alloc() 并分配新的缓冲区。
+           final ByteBuf time = ctx.alloc().buffer(4);
+           time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
+   
+           // 由于该操作是异步的，所以关闭操作需要监听完成事件实现
+           final ChannelFuture f = ctx.writeAndFlush(time);
+           // 可简化为 f.addListener(ChannelFutureListener.CLOSE);
+           f.addListener((ChannelFutureListener) future -> {
+               assert f == future;
+               ctx.close();
+           });
+       }
+   }
+   ```
+
+   
 
 ---
 

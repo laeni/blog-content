@@ -1777,3 +1777,6 @@ $ go mod edit -replace example.com/greetings=../greetings
 $ replace example.com/greetings => ../greetings
 ```
 
+## 使用私有存储库中的模块
+
+[golang + 私库（gitlab gitee） 模块开发](https://blog.csdn.net/liuyij3430448/article/details/128618154)
