@@ -1,7 +1,7 @@
 ---
 title: 'Maven pom.xml 常见配置'
 author: 'Laeni'
-tags: 'maven, pom'
+tags: Java, Maven
 date: '2023-08-06'
 updated: '2023-08-06'
 ---

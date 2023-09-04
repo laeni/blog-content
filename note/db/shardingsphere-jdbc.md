@@ -1,7 +1,7 @@
 ---
 title: 'shardingsphere-jdbc 4.1版本 SpringBoot 版本配置数据分片'
 author: 'Laeni'
-tags: Java, DataSource, 分库分表
+tags: Java, DataSource
 date: '2022-03-04'
 updated: '2022-03-05'
 ---
