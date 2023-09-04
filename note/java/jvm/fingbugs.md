@@ -65,7 +65,7 @@ GC 信息除了可以通过 GC 日志查看，还可以通过`jstat`命令查看
 ## 拉取内存堆栈
 
 ```sh
-jmap -dump:live,format=b,file=heap.hprof <pid>
+jmap -dump:live,format=b,file=java_pid<pid>.hprof <pid>
 ```
 
 # 相关工具

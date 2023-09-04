@@ -1,7 +1,7 @@
 ---
 title: SQL经典案例
 author: 'Laeni'
-tags: 'SQL'
+tags: DataSource
 date: '2022-11-30'
 updated: '2022-11-30'
 ---

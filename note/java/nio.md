@@ -1,7 +1,7 @@
 ---
 title: 'Java Nio 笔记'
 author: 'Laeni'
-tags: 'Java, Nio, Netty, 异步'
+tags: Java, NIO, Netty
 date: '2021-09-25'
 updated: '2021-09-25'
 ---

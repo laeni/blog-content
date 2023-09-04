@@ -1,7 +1,7 @@
 ---
 title: 从 Let’s Encrypt 申请免费证书并自动续签
 author: 'Laeni'
-tags: SSL, TLS, HTTPS, 证书, 安全
+tags: PKI, SSL, TLS, HTTPs, 证书, 安全
 date: '2022-11-29'
 updated: '2023-03-11'
 ---

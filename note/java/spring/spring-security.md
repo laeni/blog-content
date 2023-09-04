@@ -1,6 +1,6 @@
 ---
 title: Spring Security
-tags: 'Spring Security, Spring'
+tags: Spring, 安全
 author: Laeni
 date: '2022-03-27'
 updated: '2022-03-28'

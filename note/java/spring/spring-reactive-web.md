@@ -1,6 +1,6 @@
 ---
 title: Spring Reactive Web 入门及常见使用案例
-tags: 'Spring Reactive Web, 异步编程, 事件驱动, 非阻塞'
+tags: WEB, Spring, NIO
 author: Laeni
 date: '2021-08-24'
 updated: '2021-08-24'

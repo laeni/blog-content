@@ -1,7 +1,7 @@
 ---
 title: 'RxJS简单使用笔记'
 author: 'Laeni'
-tags: 'RxJS, ReactiveX, Observables'
+tags: JavaScript, Reactive
 date: '2021-07-28'
 updated: '2021-09-16'
 ---

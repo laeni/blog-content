@@ -1,7 +1,7 @@
 ---
 title: Spring Data JDBC
 author: 'Laeni'
-tags: 'Java, Spring, Spring Data, JDBC'
+tags: 'Java, Spring, SpringData, JDBC, DataSource'
 date: '2022-09-19'
 updated: '2022-10-24'
 hide: true

@@ -1,7 +1,7 @@
 ---
 title: '使用Kubeadm安装k8s'
 author: 'Laeni'
-tags: 'k8s, kubeadm'
+tags: Kubernetes
 date: '2022-10-29'
 updated: '2022-10-29'
 ---

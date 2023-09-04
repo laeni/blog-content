@@ -1,7 +1,7 @@
 ---
 title: '修改系统和常用应用的缓存路径到非系统分区'
 author: 'Laeni'
-tags: Linux, Windows, 默认路径, 缓存路径
+tags: Linux, Windows
 date: '2021-08-12'
 updated: '2021-08-13'
 ---

@@ -1,7 +1,7 @@
 ---
 title: NIO 框架 Netty
 author: Laeni
-tags: Nio, Netty, Socket
+tags: Java, NIO, Netty, Socket
 date: '2023-05-14'
 updated: '2023-05-15'
 ---

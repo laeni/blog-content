@@ -1,6 +1,6 @@
 ---
 title: Linux中一些操作流程及原理（仅备案）
-tags: 'Linux常用操作'
+tags: Linux
 author: Laeni
 date: '2022-07-28'
 updated: '2023-03-18'

@@ -1,7 +1,7 @@
 ---
 title: 'K8s 中 POD 的 DNS 策略及配置'
 author: 'Laeni'
-tags: 'k8s, dns, coredns'
+tags: Kubernetes, DNS
 date: '2023-02-18'
 updated: '2023-02-18'
 ---

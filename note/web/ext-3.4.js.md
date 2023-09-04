@@ -1,7 +1,7 @@
 ---
 title: Ext.js 笔记
 author: Laeni
-tags: Ext, JavaScript, Jsp
+tags: WEB, JavaScript, JSP
 deprecated: true
 date: '2023-08-07'
 updated: '2023-08-07'

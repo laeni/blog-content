@@ -1,7 +1,7 @@
 ---
 title: openssl工具帮助文档
 author: 'Laeni'
-tags: openssl, https, ssl
+tags: 安全, 证书, PKI, SSL, TLS, cfssl, HTTPs
 date: '2022-12-01'
 updated: '2022-12-06'
 ---

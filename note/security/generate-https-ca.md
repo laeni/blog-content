@@ -1,7 +1,7 @@
 ---
 title: 使用cfssl工具签发包含中间CA的https证书链，并让浏览器和java信任根CA
 author: 'Laeni'
-tags: cfssl, https, ssl, 自签发证书, 根证书, 根CA, 中间CA, 中间证书
+tags: 安全, 证书, PKI, SSL, TLS, cfssl, HTTPs
 date: '2021-05-22'
 updated: '2022-07-08'
 ---

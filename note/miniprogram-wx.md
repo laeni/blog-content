@@ -1,6 +1,6 @@
 ---
 title: 微信小程序开发
-tags: '微信小程序'
+tags: 小程序
 author: Laeni
 date: '2023-06-07'
 updated: '2023-06-07'

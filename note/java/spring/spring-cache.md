@@ -1,6 +1,6 @@
 ---
 title: Spring Cache 入门
-tags: 'Spring Cache, Spring'
+tags: Spring, 缓存
 author: Laeni
 date: '2021-08-27'
 updated: '2021-08-28'

@@ -1,7 +1,7 @@
 ---
 title: 'K8s相关概念或名词解释'
 author: 'Laeni'
-tags: 'db, etcd, k8s'
+tags: Kubernetes, DataSource
 date: '2022-06-16'
 updated: '2022-06-16'
 ---

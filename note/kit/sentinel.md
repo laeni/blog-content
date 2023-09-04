@@ -1,6 +1,6 @@
 ---
 title: Sentinel常用示例
-tags: 'Sentinel, 流量控制, 限流, 熔断, 降级, 热点参数限流'
+tags: Sentinel, 限流, 熔断, 降级
 author: Laeni
 date: '2021-08-25'
 updated: '2021-08-25'

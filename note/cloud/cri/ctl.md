@@ -1,6 +1,6 @@
 ---
 title: Containerd ctr、crictl、nerdctl 客户端命令
-tags: Containerd, Docker, CRI, ctr, crictl, nerdctl, k8s
+tags: Kubernetes, Containerd, Docker
 author: Laeni
 date: '2022-12-11'
 updated: '2022-12-11'

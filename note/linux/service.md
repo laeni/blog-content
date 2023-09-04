@@ -1,6 +1,6 @@
 ---
 title: Linux 中的服务
-tags: service, systemd
+tags: Liunx
 author: Laeni
 date: 2023-05-03
 updated: 2023-05-03

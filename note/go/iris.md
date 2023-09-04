@@ -1,7 +1,7 @@
 ---
 title: 'Iris 框架使用示例与笔记'
 author: 'Laeni'
-tags: 'WEB框架,Iris,golang'
+tags: WEB, Iris, Golang
 date: '2022-01-12'
 updated: '2022-02-13'
 ---

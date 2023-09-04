@@ -1,7 +1,7 @@
 ---
 title: '微前端'
 author: 'Laeni'
-tags: umijs, @umijs/plugin-dva, dva, react
+tags: WEB, Umi, DVA, React
 date: '2021-06-13'
 updated: '2021-06-14'
 ---

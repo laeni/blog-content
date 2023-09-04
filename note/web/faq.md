@@ -2,7 +2,7 @@
 title: WEB开发常见问题及解决方案
 description:
 author: Laeni
-tags: React, Vue, Angular, WEB开发常见问题
+tags: WEB, React, Vue, Angular
 date: '2021-08-07'
 updated: '2021-08-07'
 ---

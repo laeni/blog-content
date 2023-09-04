@@ -1,7 +1,7 @@
 ---
 title: K8S常用运维命令备案
 author: 'Laeni'
-tags: 'K8s'
+tags: Kubernetes
 date: '2022-10-21'
 updated: '2022-10-21'
 ---

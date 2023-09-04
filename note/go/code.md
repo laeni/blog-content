@@ -1,7 +1,7 @@
 ---
 title: 'Golang翻译文档（学习笔记）'
 author: 'Laeni'
-tags: 'go,golang'
+tags: Golang
 date: '2022-08-20'
 updated: '2022-09-04'
 ---

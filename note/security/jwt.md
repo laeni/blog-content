@@ -1,7 +1,7 @@
 ---
 title: JSON Web Token (JWT) 结构与工作机制
 author: 'Laeni'
-tags: jwt, 安全
+tags: 安全
 date: '2022-03-29'
 updated: '2022-03-29'
 ---

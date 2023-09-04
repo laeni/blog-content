@@ -1,7 +1,7 @@
 ---
 title: Docker使用笔记
 author: 'Laeni'
-tags: ["Docker", "容器"]
+tags: Kubernetes, Containerd, Docker
 date: '2021-10-01'
 updated: '2022-10-16'
 ---

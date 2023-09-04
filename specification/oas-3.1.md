@@ -1,6 +1,6 @@
 ---
 title: 'OpenAPI 规范'
-tags: 'OpenAPI'
+tags: OpenAPI, API, 接口, 规范
 date: '2024-04-13'
 updated: '2024-04-13'
 hide: true

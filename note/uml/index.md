@@ -2,7 +2,7 @@
 title: UML概述
 description: 
 author: Laeni
-tags: ['UML', '统一建模语言']
+tags: UML, 软件工程
 date: '2021-05-24'
 updated: '2021-05-24'
 ---

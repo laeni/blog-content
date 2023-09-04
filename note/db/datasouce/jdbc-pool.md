@@ -1,7 +1,7 @@
 ---
 title: JDBC线程池设置
 description: 
-tags: 'JDBC'
+tags: JDBC, DataSource
 date: '2021-05-24'
 updated: '2021-05-26'
 ---

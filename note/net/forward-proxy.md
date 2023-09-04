@@ -2,7 +2,7 @@
 title: 基于Nginx搭建正向代理服务器实现科学上网
 description: '使用Nginx + ngx_http_proxy_connect_module 模块搭建支持https的正向代理服务器，以解决某些开发过程中很多国外文档网站被屏蔽的问题'
 author: 'Laeni'
-tags: Nginx, 正向代理, ngx_http_proxy_connect_module, FanQiang, VPN, 科学上网
+tags: Nginx, 代理, VPN
 date: '2021-05-16'
 updated: '2022-06-03'
 hide: true

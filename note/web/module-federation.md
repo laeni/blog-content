@@ -1,7 +1,7 @@
 ---
 title: 'Webpack5 Module Federation微前端初探'
 author: 'Laeni'
-tags: 'webpack5, Module Federation, 模块联邦'
+tags: WEB, Nodejs
 date: '2021-06-20'
 updated: '2021-06-20'
 ---

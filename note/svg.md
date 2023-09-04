@@ -1,6 +1,6 @@
 ---
 title: SVG基础知识
-tags: 'svg'
+tags: SVG
 author: Laeni
 date: '2023-06-02'
 updated: '2023-06-02'

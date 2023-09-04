@@ -1,7 +1,7 @@
 ---
 title: Spring Data JPA
 author: 'Laeni'
-tags: 'Java, Spring, Spring Data, JPA'
+tags: 'Java, Spring, SpringData, JPA, DataSource'
 date: '2022-11-03'
 updated: '2022-11-03'
 ---

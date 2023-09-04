@@ -1,7 +1,7 @@
 ---
 title: 'MySQL的锁'
 author: '周迪'
-tags: 'MySQL, Lock'
+tags: MySQL, DataSource
 date: '2022-03-04'
 updated: '2022-03-05'
 ---

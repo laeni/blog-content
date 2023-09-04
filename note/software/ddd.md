@@ -1,6 +1,6 @@
 ---
 title: 领域驱动设计（DDD）入门
-tags: 'DDD, 领域驱动设计, 软件工程'
+tags: DDD, 软件工程
 author: Laeni
 date: '2021-08-18'
 updated: '2021-08-21'

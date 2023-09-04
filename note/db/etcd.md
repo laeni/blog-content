@@ -1,7 +1,7 @@
 ---
 title: 'Etcd 帮助文档'
 author: 'Laeni'
-tags: 'db, etcd, k8s'
+tags: DataSource, Kubernetes
 date: '2021-12-18'
 updated: '2021-12-18'
 ---

@@ -1,7 +1,7 @@
 ---
 title: 安全相关概念
 author: 'Laeni'
-tags: 加密, 证书, SLL, TLS
+tags: 安全, 证书, PKI, SSL, TLS
 date: '2022-01-03'
 updated: '2022-01-03'
 ---

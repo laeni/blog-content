@@ -1,7 +1,7 @@
 ---
 title: 'RxJava简单使用笔记'
 author: 'Laeni'
-tags: 'RxJava, ReactiveX, Observables'
+tags: Java, Reactive
 date: '2021-08-11'
 updated: '2021-08-11'
 ---

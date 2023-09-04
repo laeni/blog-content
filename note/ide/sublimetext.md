@@ -1,7 +1,7 @@
 ---
 title: Sublime Text 常用操作（主要是快捷键）
 author: Laeni
-tags: Sublime Text, 文本编辑器
+tags: IDE
 date: 2023-05-03
 updated: 2023-05-04
 ---

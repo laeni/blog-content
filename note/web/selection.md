@@ -2,7 +2,7 @@
 title: WEB技术框架选型参考
 description: 
 author: Laeni
-tags: React, Vue, Angular, WEB技术选型
+tags: WEB, React, Vue, Angular
 date: '2021-05-31'
 updated: '2021-06-02'
 ---

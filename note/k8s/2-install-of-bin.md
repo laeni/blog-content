@@ -1,7 +1,7 @@
 ---
 title: '二进制方式安装K8s'
 author: 'Laeni'
-tags: 'k8s'
+tags: Kubernetes
 date: '2022-10-29'
 updated: '2022-11-06'
 ---

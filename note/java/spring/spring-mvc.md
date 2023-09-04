@@ -1,7 +1,7 @@
 ---
 title: 'Spring MVC'
 author: 'Laeni'
-tags: 'Spring MVC, Spring, WEB'
+tags: Spring, SpringMVC, WEB
 date: '2023-07-13'
 updated: '2023-07-13'
 ---

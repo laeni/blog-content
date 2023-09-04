@@ -1,7 +1,7 @@
 ---
 title: WireGuard 的简单使用
 author: 'Laeni'
-tags: WireGuard, VPN, 科学上网, 局域网
+tags: VPN
 date: '2022-12-06'
 updated: '2023-02-17'
 ---

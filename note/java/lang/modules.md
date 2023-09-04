@@ -1,7 +1,7 @@
 ---
 title: 'Java 9 新特性之 Java 模块'
 author: 'Laeni'
-tags: 'Java, 模块, Module, Java 强封装, Java 新特性'
+tags: Java
 date: '2023-03-25'
 updated: '2023-03-27'
 ---

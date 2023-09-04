@@ -1,7 +1,7 @@
 ---
 title: 生成K8s所需的证书和密钥及用户配置文件
 author: 'Laeni'
-tags: cfssl, k8s, kubernetes, ssl, 自签发证书, 根证书, 中间证书
+tags: 安全, Kubernetes, PKI, 证书
 date: '2022-08-01'
 updated: '2022-08-01'
 ---

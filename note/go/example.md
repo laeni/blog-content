@@ -1,7 +1,7 @@
 ---
 title: Golang 常用示例
 author: Laeni
-tags: go,golang
+tags: Golang
 date: '2023-01-11'
 updated: '2023-01-11'
 ---
