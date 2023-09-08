@@ -33,6 +33,44 @@ $ systemctl enable wg-quick@wg0
 - [Windows-amd64-0.5.3.msi](https://chengdu-1252266447.cos.ap-chengdu.myqcloud.com/share/package/wireguard/Windows-amd64-0.5.3.msi)
 - [Mac-amd64-1.0.16.tar.gz](https://chengdu-1252266447.cos.ap-chengdu.myqcloud.com/share/package/wireguard/Mac-amd64-1.0.16.tar.gz) [Mac-amd64-1.0.15.tar.gz](https://chengdu-1252266447.cos.ap-chengdu.myqcloud.com/share/package/wireguard/Mac-amd64-1.0.15.tar.gz)
 
+## OpenWRT
+
+### 安装
+
+进入应用商店**系统->Software**，更新包列表之后直接安装`luci-i18n-wireguard-zh-cn`即可（其他依赖的包会自动安装）。安装完成后要重启，否则WEB会缺失一些内容。
+
+### 配置
+
+1. 创建网络接口。
+
+   进入**网络 -> 接口 -> 新建新接口**，**名称**习惯性填写`wg0`，**协议**选择`WireGuard VPN`。
+
+2. 常规配置。
+
+   一般填写**私钥**和**IP**即可。
+
+3. 防火墙设置。
+
+   **创建/分配防火墙区域**选择`lan`。
+
+4. 对端。
+
+   配置上和另外一台机器的约定配置即可。
+
+   > 注意，一般需要从外部访问连接到路由器上的终端，所以最好设置**持续 Keep-Alive**参数（最好和服务器一致），否则路由器启动后如果路由器这端没有应用访问对端，则网络链路不会打通，这样也不能通过对端连接到路由器网络。
+
+5. 添加启动定制命令
+
+   ```
+   PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o wan -j MASQUERADE
+   PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o wan -j MASQUERADE
+   
+   PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o br-lan -j MASQUERADE
+   PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o br-lan -j MASQUERADE
+   ```
+
+   
+
 # 常用命令
 
 ```shell
