@@ -41,35 +41,40 @@ $ systemctl enable wg-quick@wg0
 
 ### 配置
 
-1. 创建网络接口。
+#### 创建网络接口。
 
-   进入**网络 -> 接口 -> 新建新接口**，**名称**习惯性填写`wg0`，**协议**选择`WireGuard VPN`。
+进入**网络 -> 接口 -> 新建新接口**，**名称**习惯性填写`wg0`，**协议**选择`WireGuard VPN`。
 
-2. 常规配置。
+1. 常规配置。
 
    一般填写**私钥**和**IP**即可。
 
-3. 防火墙设置。
+2. 防火墙设置。
 
    **创建/分配防火墙区域**选择`lan`。
 
-4. 对端。
+3. 对端。
 
    配置上和另外一台机器的约定配置即可。
 
    > 注意，一般需要从外部访问连接到路由器上的终端，所以最好设置**持续 Keep-Alive**参数（最好和服务器一致），否则路由器启动后如果路由器这端没有应用访问对端，则网络链路不会打通，这样也不能通过对端连接到路由器网络。
 
-5. 添加启动定制命令
+#### 防火墙配置
 
-   ```
-   PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o wan -j MASQUERADE
-   PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o wan -j MASQUERADE
-   
-   PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o br-lan -j MASQUERADE
-   PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o br-lan -j MASQUERADE
-   ```
+防火墙配置的目的主要是允许转发，且对转发流量进行**NAT**。如果不允许转发，那从外部直接访问连接在*OpenWRT*设备上的其他终端时，这些设备能完全收不到任何数据包；如果仅开启转发而不做NAT，那一般情况下这些设备能收到包，但是回包会有问题，做了NAT之后，其他网络设备收到包时，看到的原IP地址是网关IP，这样回包就没问题了。
 
-   
+进入**网络 -> 防火墙**页面，将**Forward（转发）**更改为`accept`；勾选`lan => wan`的**Masquerading**。然后保存并应用即可。
+
+该操作可直接用**iptables**命令操作，比如在常规*Liunx*服务器上配置*WireGuard*需要增加**PostUp**和**PostDown**脚本（这里的设置相当于**PostUp**脚本）。即上述操作等同于命令`iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o br-lan -j MASQUERADE`。
+
+```
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o br-lan -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o br-lan -j MASQUERADE
+```
+
+> 脚本中`br-lan`是网络接口（平时可能说网卡或网桥）名称，不同设备可能不一样，对于路由器上的*OpenWRT*一般是`br-lan`。
+>
+> 确认具体是哪个网卡的方法很多，比如通过*SSH*登录到*OpenWRT*后通过`ifconfig`命令得到所有网络接口信息之后，看其他设备接入网络后自动获取的IP地址属于哪个网络接口的网段，那这个网络接口就是目标。
 
 # 常用命令
 
