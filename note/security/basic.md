@@ -45,6 +45,23 @@ SSL(Secure Socket Layer 安全套接层)是一个加密函数库，目前基本�
 
 TLS(Transport Layer Security 安全传输层协议)，目前已经发展出三个版本:TLSv1.0、TLSv1.1、TLSv1.2。目前TLSv1 相当于 SSLv3，通常我们将可不对它们做过细的区分。
 
+### ECDH
+
+`ECDH = ECC + DH`，一般用于密钥交换。
+
+### ECDSA
+
+`ECDSA = ECC + DSA`，一般用于签名，比如通过**Let’s Encrypt**申请的证书，公钥算法使用的就是*ECDSA*。
+
+## 非对称加密相关算法
+
+| 算法            | 加密/解密 | 数字签名 | 密钥交换 |
+| :-------------- | :-------- | :------- | :------- |
+| RSA             | ✅         | ✅        | ✅        |
+| Diffie-Hellman  | ❌         | ❌        | ✅        |
+| DSA             | ❌         | ✅        | ❌        |
+| ECC（椭圆曲线） | ✅         | ✅        | ✅        |
+
 ## 其他
 
 ### RFC
@@ -64,7 +81,9 @@ RFC是Internet协议字典，它里包含了所有互联网技术的规范！RFC
 | L（Locality）           | 地区，城市（一般填写“市”）                                   |
 | OU（Organization Unit） | 组织单位名称，机构，公司部门                                 |
 
+## 参考文档
 
+- [【密码学】非对称加密算法 - ECDH-阿里云开发者社区 (aliyun.com)](https://developer.aliyun.com/article/1171611)
 
 
 
