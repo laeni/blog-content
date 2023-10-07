@@ -76,6 +76,34 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACC
 >
 > 确认具体是哪个网卡的方法很多，比如通过*SSH*登录到*OpenWRT*后通过`ifconfig`命令得到所有网络接口信息之后，看其他设备接入网络后自动获取的IP地址属于哪个网络接口的网段，那这个网络接口就是目标。
 
+## Mac OS
+
+如果不作为代理节点，那随便安装即可使用，但是如果要作为代理，则需要开启转发并进行**NAT**。
+
+在Mac中，可以使用pf（Packet Filter）来进行转发和NAT。以下是在Mac中开启转发并进行NAT的步骤：
+
+1. 输入以下命令来启用IP转发功能：
+
+   ```bash
+   sudo sysctl -w net.inet.ip.forwarding=1
+   ```
+
+2. 编辑/etc/pf.conf文件并添加以下规则（假设你的内网接口是en0，外网接口是en1）：
+
+   ```bash
+   nat on en0 from en1:network to any -> (en0)
+   ```
+
+   > 这将使得来自en1接口的流量通过en0接口进行NAT转发。
+
+3. 输入以下命令启用pf规则：
+
+   ```bash
+   sudo pfctl -e
+   ```
+
+> 请确保在进行上述操作之前，已经正确配置了wireguard代理节点。并根据实际情况修改相应的接口和网络配置。
+
 # 常用命令
 
 ```shell

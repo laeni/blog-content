@@ -76,5 +76,28 @@ Input ->- | Parser(解析) | ->- Syntax Tree(语法树) ->- | Compiler(编译) |
 
 如图所示，使用unist时必须有“解析”和“编译”这两个过程，否则会报错误。
 
+## 示例
 
+```tsx
+import remarkGfm from "remark-gfm"
+import remarkMath from 'remark-math'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import rehypeMathjax from 'rehype-mathjax'
+import rehypeStringify from 'rehype-stringify'
+import { unified } from 'unified'
+
+const vfile = await unified()
+	// 注意，这些插件顺序一般无关紧要，因为 unified 会自动根据插件的定义进行排序，但最终的效果大致类似于下面的顺序
+    .use(remarkParse)     // 【解析】将 Markdown 解析为 mdast 语法树（markdown 语法树）
+    .use(remarkMath)      // 【解析】对 remarkParse 未完全解析的数学公式（这里还是 Markdown 字符串）解析为 hast 语法树
+    .use(remarkGfm)       // 【解析】GitHub 风格的 Markdown 支持（它能解析表格，原理同 remarkMath），如果不使用该插件，需要单独解析表格
+    .use(remarkRehype)    // 【变换】将 mdast 语法树 转为 hast 语法树（HTML 语法树）
+    .use(rehypeMathjax)   // 【变换】将 remarkMath 解析得到的部分特定 hast 语法树（数学公式部分）转换为 SVG
+    .use(rehypeStringify) // 【编译】hast语法树 -> HTML 字符串
+    .process('# Title\n\nMarkdown text.\n\nMath: $4=2^2$')
+console.log('html: ', vfile.value)
+```
+
+> 注：React 中使用时一般使用[react-markdown](https://github.com/remarkjs/react-markdown)库，该库虽然是[unified](https://github.com/unifiedjs/unified)的包装，但是最终输出React组件，而不是普通HTML，这解锁了更多有用的东西，比如可以在Makdown中使用自定义的React组件等。
 
