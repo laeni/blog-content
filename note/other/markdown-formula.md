@@ -13,33 +13,33 @@ updated: 2023-09-16
 
 ## 上标、下标与组合
 
-1. 上标符号，符号：`^`，如：$x^4$
-2. 下标符号，符号：`_`，如：$x_1$
-3. 组合符号，符号：`{}`，如：${16}_{8}O{2+}_{2}$
+1. 上标符号，符号：`^`，如：$x^2$ - `x^2`
+2. 下标符号，符号：`_`，如：$CO_2$ - `CO_2`
+3. 组合符号，符号：`{}`，如：${16}_{8}O^{2+}_2$ - `{16}_{8}O^{2+}_2`
 
 ## 汉字、字体与格式
 
-1. 汉字形式，符号：`\mbox{}`，如：$V_{\mbox{初始}}$
-2. 字体控制，符号：`\displaystyle`，如：$\displaystyle \frac{x+y}{y+z}$
-3. 下划线符号，符号：`\underline`，如：$\underline{x+y}$
-4. 标签，符号`\tag{数字}`，如：$\tag{11}$
-5. 上大括号，符号：`\overbrace{算式}`，如：$\overbrace{a+b+c+d}^{2.0}$
-6. 下大括号，符号：`\underbrace{算式}`，如：$a+\underbrace{b+c}_{1.0}+d$
-7. 上位符号，符号：`\stacrel{上位符号}{基位符号}`，如：$\vec{x}\stackrel{\mathrm{def}}{=}{x_1,\dots,x_n}$
+1. 汉字形式，符号：`\mbox{}`，如：$V_{\mbox{初始}}$ - `V_{\mbox{初始}}`
+2. 字体控制，符号：`\displaystyle`，如：$\displaystyle \frac{x+y}{y+z}$ - `\displaystyle \frac{x+y}{y+z}`
+3. 下划线符号，符号：`\underline`，如：$\underline{x+y}$ - `\underline{x+y}`
+4. 标签，符号`\tag{数字}`，如：$\tag{11}$ - `\tag{11}`
+5. 上大括号，符号：`\overbrace{算式}`，如：$\overbrace{a+b+c+d}^{2.0}$ - `\overbrace{a+b+c+d}^{2.0}`
+6. 下大括号，符号：`\underbrace{算式}`，如：$a+\underbrace{b+c}_{1.0}+d$ - `a+\underbrace{b+c}_{1.0}+d`
+7. 上位符号，符号：`\stacrel{上位符号}{基位符号}`，如：$\vec{x}\stackrel{\mathrm{def}}{=}{x_1,\dots,x_n}$ - `\vec{x}\stackrel{\mathrm{def}}{=}{x_1,\dots,x_n}`
 
 ## 占位符
 
-1. 两个quad空格，符号：`\qquad`，如：$x \qquad y$
-2. quad空格，符号：`\quad`，如：$x \quad y$
-3. 大空格，符号`\`，如：$x \  y$
-4. 中空格，符号`\:`，如：$x : y$
-5. 小空格，符号`\,`，如：$x , y$
-6. 没有空格，符号``，如：$xy$
-7. 紧贴，符号`\!`，如：$x ! y$
+1. 两个quad空格，符号：`\qquad`，如：$x \qquad y$ - `x \qquad y`
+2. quad空格，符号：`\quad`，如：$x \quad y$ - `x \quad y`
+3. 大空格，符号`\`，如：$x \  y$ - `x \  y`
+4. 中空格，符号`\:`，如：$x : y$ - `x : y`
+5. 小空格，符号`\,`，如：$x , y$ - `x , y`
+6. 没有空格，如：$xy$ - `xy`
+7. 紧贴，符号`\!`，如：$x \! y$ - `x \! y`
 
 ## 定界符与组合
 
-1. 括号，符号：`（）\big(\big) \Big(\Big) \bigg(\bigg) \Bigg(\Bigg)`，如：$（）\big(\big) \Big(\Big) \bigg(\bigg) \Bigg(\Bigg)$
+1. 括号，符号：`（）\big(\big) \Big(\Big) \bigg(\bigg) \Bigg(\Bigg)`，如：$（）\big(\big) \Big(\Big) \bigg(\bigg) \Bigg(\Bigg)$ - `（）\big(\big) \Big(\Big) \bigg(\bigg) \Bigg(\Bigg)`
 2. 中括号，符号：`[]`，如：$[x+y]$
 3. 大括号，符号：`\{ \}`，如：$\{x+y\}$
 4. 自适应括号，符号：`\left \right`，如：$\left(x\right)$，$\left(x{yz}\right)$
