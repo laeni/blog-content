@@ -164,6 +164,43 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
    spring.servlet.multipart.max-file-size=200MB
    ```
 
+5. `class Xxx implements WebBindingInitializer`改造。
+
+   假设有如下配置:
+
+   ```java
+   @Component
+   public class GlobalBindingInitializer implements WebBindingInitializer {
+   	@Override
+   	public void initBinder(WebDataBinder binder) {
+   		// ......
+   	}
+   }
+   ```
+
+   或者`MultiActionController`子类的形式:
+
+   ```java
+   class _BaseController extends MultiActionController {
+       @Override
+   	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+           // ......
+       }
+   }
+   ```
+   
+   将上面的配置修改为：
+   
+   ```java
+   @ControllerAdvice
+   public class GlobalBindingInitializer {
+   	@InitBinder
+   	public void initBinder(WebDataBinder binder) {
+   		// ......
+   	}
+   }
+   ```
+
 ## Quartz
 
 1. 删除`<task:annotation-driven ... />`
@@ -188,17 +225,17 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
    
    }
    ```
-   
+
    新增：
-   
+
    ```java
    @Bean
    WebMvcConfigurer webMvcConfigurer() {
        ......
    }
    ```
-   
-1. 添加路径匹配配置
+
+2. 添加路径匹配配置
 
    ```yml
    spring:
@@ -207,12 +244,12 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
          use-suffix-pattern: true
          matching-strategy: ANT_PATH_MATCHER
    ```
-   
-   > 虽然新版已经不建议使用后缀匹配模式，但是根据惯例，SpringMVC项目很喜欢使用诸如`xxx.do`或者`xxx.htm`的后端接口，如果Controller路径上不包含这些后缀会导致*404*问题。
-   
-1. 删除`<mvc:annotation-driven />`
 
-1. 静态资源映射配置。
+   > 虽然新版已经不建议使用后缀匹配模式，但是根据惯例，SpringMVC项目很喜欢使用诸如`xxx.do`或者`xxx.htm`的后端接口，如果Controller路径上不包含这些后缀会导致*404*问题。
+
+3. 删除`<mvc:annotation-driven />`
+
+4. 静态资源映射配置。
 
    SpringMVC中可能会做如下配置：
 
@@ -223,9 +260,9 @@ void deleteByName(@org.springframework.data.repository.query.Param("name") Strin
    <mvc:resources mapping="/jquery/**" location="/jquery/"/>
    <mvc:resources mapping="/js/**" location="/js/"/>
    ```
-   
+
    SpringBoot虽然也可以像上面一样做路径映射，但是更好的做法应该是将静态资源移动到SpringBoot约定的静态资源目录（参见: `spring.web.resources.static-locations`的默认值）下：
-   
+
    ```sh
    mkdir resources/static
    mv webapp/bootstrap webapp/commonJS webapp/images webapp/jquery webapp/js resources/static/
@@ -812,11 +849,98 @@ SpringBoot 已经不在需要`web.xml`，但是原始文件可能存在很多配
    > 2. logger 的主要目的时为了将某中类型的日志单独打印一份而设置的，单独打印后可以根据需要决定是否往 Root 继续打印（为了能统一查看日志，除非特殊情况，否则建议统一往 Root 输出一份），虽然 logger 可以配置输出级别，但是日志级别一般通过专有的配置进行设置，比如配置中心。
    > 3. 日志重复输出 - 当 logger 直接或间接记录到 Root Appender 并开启 additivity 时会存在重复输出的问题解决方案: 开启 additivity 时，Appender 不能含有直接或间接 Root Appender。
 
-
-
-
-
 ## 去activiti
 
 activiti 是 HTTP 工具类，用于多个服务间的相互调用，用 Feign 取代。
+
+## XML 格式的Spring MVC配置更改
+
+可能有如下的XML格式配置:
+
+```xml
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+    <property name="useSuffixPatternMatch" value="true"/>
+</bean>
+```
+
+需要将其替换为 Java 配置:
+
+```java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer.setUseSuffixPatternMatch(true);
+    }
+}
+```
+
+> 可能由于历史原因不得不开启后缀匹配。
+
+## 路径匹配规则配置
+
+老项目可能通过一些奇怪的后缀来匹配，比如`web.xml`中可能有如下配置：
+
+```xml
+<!-- web.xml -->
+<servlet>
+    <servlet-name>springmvc</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:/spring-mvc.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+    <servlet-name>springmvc</servlet-name>
+    <url-pattern>*.htm</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+    <servlet-name>springmvc</servlet-name>
+    <url-pattern>*.json</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+    <servlet-name>springmvc</servlet-name>
+    <url-pattern>*.html</url-pattern>
+</servlet-mapping>
+```
+
+而**Controller**的路径可能是不带后缀的，当升级到 **Spring 5.x** 后，默认不进行后缀匹配，所以了兼容老版本用法，要么在每个 Controller 中都配置带后缀和不带后缀的路径，要么通过配置开启路径后缀匹配。
+
+开启方法见[XML 格式的Spring MVC配置更改](#XML 格式的Spring MVC配置更改)。
+
+此外，为了能够使用不带后缀的 Controller，建议将上述 `web.xml` 配置中路径匹配方式更改**匹配所有**。即：
+
+```xml
+<!-- web.xml -->
+<servlet>
+    <servlet-name>springmvc</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:/spring-mvc.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+    <servlet-name>springmvc</servlet-name>
+    <url-pattern>/</url-pattern>
+</servlet-mapping>
+```
+
+这时候，如果项目有静态资源的，需要指定静态资源路径匹配前缀：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:resources mapping="/js/**" location="/js/"/>
+    <mvc:resources mapping="/css/**" location="/css/"/>
+
+</beans>
+```
 
