@@ -49,6 +49,7 @@ public void encrypt(InputStream inputStream, OutputStream outputStream, byte[] k
 
     int len;
     byte[] bytes;
+    // 实际使用时，缓冲大小一般远大于9，这里是为了演示“当数据不够时 update 方法不会立即返回密文”
     final byte[] buf = new byte[9];
     while ((len = inputStream.read(buf)) != -1) {
         bytes = cipher.update(buf, 0, len);
