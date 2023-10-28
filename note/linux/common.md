@@ -41,5 +41,6 @@ updated: '2023-03-18'
 ## 其他
 
 - [ssh 端口转发 - 简书 (jianshu.com)](https://www.jianshu.com/p/6eb87b48d465)
+- [ssh端口转发(跳板机)详解-阿里云开发者社区 (aliyun.com)](https://developer.aliyun.com/article/1035160)
 - [Linux监听文件或目录增删改事件](https://blog.csdn.net/qq_25518029/article/details/119727921)
 
