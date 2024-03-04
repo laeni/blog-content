@@ -3,7 +3,7 @@ title: 从 Let’s Encrypt 申请免费证书并自动续签
 author: 'Laeni'
 tags: PKI, SSL, TLS, HTTPs, 证书, 安全
 date: '2022-11-29'
-updated: '2023-03-11'
+updated: '2024-03-03'
 ---
 
 Let’s Encrypt 是一个证书颁发机构（CA），对外提供[ACME](https://www.rfc-editor.org/rfc/rfc8555)协议的API，可以通过该API申请证书。而可以与ACME协议的API交互的客户端工具有很多，官方列举了一些[比较好的实现](https://letsencrypt.org/zh-cn/docs/client-options/)。这里我们选用其中的[lego](https://github.com/go-acme/lego)工具使用，选它的一个重要原因是该工具使用Go编写，直接到[项目的releases页](https://github.com/go-acme/lego/releases)下载可执行二进制即可使用，并且它不会尝试编辑Web服务器的配置文件，只专注于证书的申请和续期，而证书续期完成后可以通过钩子命令来处理一些后续逻辑（比如 reload nginx）。
@@ -68,7 +68,7 @@ LEGO_PATH=/mnt/share/archive/cert/www/.lego
 
 1. 使用阿里云DNS验证。
 
-   创建一个子用户并授权DNS操作权限（安全的迁移下也可以直接使用主账户），然后记录下账户密钥。
+   创建一个子用户并授权DNS操作权限（安全的前提下也可以直接使用主账户），然后记录下账户密钥。
 
    ```sh
    ALICLOUD_ACCESS_KEY=abcdefghijklmnopqrstuvwx
