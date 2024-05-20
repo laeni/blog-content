@@ -12,11 +12,40 @@
 
 ## 安装后操作
 
-1. Startup Disk Creator
+1. 启用 GENOME 原生远程桌面
+
+   1. “设置 - 共享 - 远程桌面”中启用。
+
+   2. 开启锁屏状态下允许连接。
+
+      1. 安装`gnome-browser-connector`
+
+         - 编译安装
+
+           ```sh
+           git clone https://gitlab.gnome.org/nE0sIghT/gnome-browser-connector.git
+           cd gnome-browser-connector/
+           meson --prefix=/usr builddir # meson 可能没有安装 - sudo apt install meson
+           meson install -C builddir
+           ```
+
+         - 从软件包安装
+
+           ```sh
+           sudo apt install gnome-browser-connector
+           ```
+
+           > 如果此方式无法安装则只能使用编译方式安装。
+
+      2. 浏览器中转到[allow-locked-remote-desktop](https://extensions.gnome.org/extension/4338/allow-locked-remote-desktop/)扩展页，开启右侧的开关即可。
+
+      > 推荐使用上述的`gnome-browser-connector`方式，除了上述方式还可以直接安装本地可视化工具`gnome-shell-extension-manager`（`sudo apt install gnome-shell-extension-manager`），但是使用`gnome-shell-extension-manager`可能无法搜索到需要的软件包（在网页上可以搜索到）。
+
+2. Startup Disk Creator
 
    由于是最小安装，所以“启动盘创建器”工具不会安装，可以在应用商店搜索“Startup Disk Creator”安装即可。
 
-2. wireguard
+3. wireguard
 
    ```sh
    $ sudo apt install wireguard resolvconf # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
@@ -25,7 +54,7 @@
    $ systemctl enable wg-quick@wg0 --now
    ```
 
-3. 挂载NFS
+4. 挂载NFS
 
    ```sh
    $ sudo apt-get install nfs-common nfs-kernel-server # 如果挂载失败，则至少要安装 nfs-common
@@ -34,7 +63,7 @@
    $ sudo systemctl enable auto_mount_nfs.service --now
    ```
 
-4. NFS 相关权限设置
+5. NFS 相关权限设置
 
    由于需要在不同系统（Mac和Linux）上挂载相同的 NFS 目录，所以如果不进行设置会出现 Mac 上创建的文件无法在 Linux 上修改，Linux 创建的 Mac 也无法修改，所以需要将 Linux 用户添加到 Mac 用户所属的组。
 
@@ -45,7 +74,7 @@
 
    > Mac 中用户组的组ID为`501`，而 Ubuntu 中，ID 为`501`的用户组为`dialout`，所以直接将当前用户附加到改组即可，如果不存在则创建一个 ID 为 `501` 的组来使用即可。
 
-5. 信任自签名证书
+6. 信任自签名证书
 
    由于有些服务器只是自己用，但是为了安全所以自己签发了证书，所以需要信任根证书。
 
@@ -61,21 +90,21 @@
 
    > 这里只添加了系统和nssdb，如果需要在java中使用，则需要再将根证书添加到java证书库中。
 
-6. 远程ssh登陆
+7. 远程ssh登陆
 
    ```sh
    $ sudo apt-get install openssh-server
    ```
 
-7. flameshot（火焰截图）
+8. flameshot（火焰截图）
 
    应用商店(snap)
 
-8. Edge
+9. Edge
 
    官方下载安装包进行安装
 
-9. qqmusic
+10. qqmusic
 
    1. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
 
@@ -97,7 +126,7 @@
       修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
       修改后可能需要重启才生效
 
-10. dbeawer-ce
+11. dbeawer-ce
 
    [官网](https://dbeaver.io/download/)下载安装`Linux Debian package`包安装.
 
@@ -226,6 +255,60 @@
     # 合上盖子时动作（外接电源时）: suspend-暂停/休眠 ignore-无动作 lock-锁屏
     HandleLidSwitchExternalPower=lock
     ```
+
+22. Data Integration（Kettle / Spoon）
+
+    1. 安装
+
+       [官网](https://www.hitachivantara.com/en-us/products/pentaho-plus-platform/data-integration-analytics/download-pentaho.html)
+
+       ```sh
+       cd ~/Workspace/.Applicathon/
+       curl -LO https://proxy.laeni.cn/pdi-ce-9.4.0.0-343.zip
+       unzip pdi-ce-9.4.0.0-343.zip 
+       ```
+    
+    2. 解决 Unbuntu 打开报警告问题
+    
+       参考[官网](https://community.hitachivantara.com/discussion/libwebkitgtk-10-0-on-ubuntu-2204-lts)做如下处理。
+    
+       编辑`/etc/apt/sources.list`文件，添加：
+    
+       ```
+       # Add entry to repository that contains the old lib
+       deb http://cz.archive.ubuntu.com/ubuntu bionic main universe 
+       
+       # Alternative link if upper does not work
+       deb http://mirrors.kernel.org/ubuntu bionic main universe
+       ```
+    
+       然后安装包：
+    
+       ```
+       sudo apt-get update
+       # 直接 update 会报证书相关的错，需要信任错误中给出的证书
+       sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+       sudo apt-get update
+       sudo apt-get install libwebkitgtk-1.0-0
+       sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
+       ```
+    
+    3. 制作启动图标
+    
+       ```sh
+       cat <<EOF | sudo tee ~/Workspace/.Applicathon/data-integration/data-integration.desktop
+       [Desktop Entry]
+       Name=Data Integration
+       Comment=Data Integration
+       GenericName=Data Integration
+       Exec=./spoon.sh %U
+       Icon=./spoon.png
+       Type=Application
+       StartupNotify=true
+       Categories=Programming;
+       EOF
+       sudo ln -s ~/Workspace/.Applicathon/data-integration/data-integration.desktop /usr/local/share/applications/
+       ```
 
 ## Ubuntu下常见问题解决
 

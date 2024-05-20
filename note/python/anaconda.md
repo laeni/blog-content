@@ -9,7 +9,29 @@ Anaconda Distribution（Anaconda 发行版） 是一个免费的 Python/R 数据
 
 Anaconda Distribution 是免费的，易于安装，并提供[免费社区支持](https://community.anaconda.cloud/).要了解更多信息，请访问[开始使用 Anaconda Distribution](https://docs.anaconda.com/free/anaconda/getting-started/index.html).
 
-## 环境
+## 安装与配置
+
+安装时从[下载页面](https://www.anaconda.com/download)下载对应系统的安装包安装即可。
+
+### 配置
+
+- 一般情况下，每次通过 Shell 使用 Annaconda 前都需要进行初始化（例如将 Annaconda 路径添加到 $PATH），使用以下命令可以使 Annaconda 自动修改 Shell 配置文件，将初始化脚本添加到配置文件中。
+
+  ```sh
+  $ conda init --reverse $SHELL
+  ```
+
+  > 一般安装后会自动对当前使用的 Shell 进行设置，如需设置其他 Shell 可以手动初始化。
+
+- 安装后 Annaconda 后，每次启动 Sheell 时都会自动激活 `base` 环境，激活环境后会改变命令行外观，如需禁用该行为可使用如下命令，同理，如果需要其自动设置时，可以将 `auto_activate_base` 设置为 `true`。
+
+  ```sh
+  $ conda config --set auto_activate_base false
+  ```
+
+## 概念
+
+### 环境
 
 列出已有的环境：
 
@@ -31,7 +53,7 @@ $ conda create --name example
 $ conda activate example
 ```
 
-## 安装包
+### 安装包
 
 conda install packge1 [packge2]
 
@@ -39,7 +61,7 @@ conda install packge1 [packge2]
 $ conda install pandas
 ```
 
-## Jupyter
+### Jupyter
 
 Jupyter Notebook 和 JupyterLab
 
@@ -53,7 +75,7 @@ $ jupyter-lab
 
 # 足迹
 
-1. [下载]([Free Download | Anaconda](https://www.anaconda.com/download))并安装。
+1. [下载](https://www.anaconda.com/download)并安装。
 
 2. 安装完成后进入[安装成功](https://www.anaconda.com/installation-success?source=installer)_（官方推荐将其存为书签）。
 

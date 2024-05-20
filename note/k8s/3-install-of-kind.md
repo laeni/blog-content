@@ -14,9 +14,9 @@ networking:
   # 但是我们这里并不需要启动多个集群，并且希望他与k8s官网尽量靠近，所以指定为6443。
   apiServerPort: 6443
   # POD 子网
-  podSubnet: "10.244.0.0/16"
+  podSubnet: "10.2.0.0/16"
   # 服务子网
-  serviceSubnet: "10.96.0.0/16"
+  serviceSubnet: "10.1.0.0/16"
 # 可以指定多个节点，并且详细配置每个节点，默认情况下只有一个名为"control-plane"的节点
 #nodes:
 #- role: control-plane

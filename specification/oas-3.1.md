@@ -120,7 +120,7 @@ OAS 定义的格式是：
 
 ### 
 
-### 富文本格式 
+### 富文本格式
 
 在整个规范中`description`字段被标记为支持 CommonMark 降价格式。在 OpenAPI 工具呈现富文本的地方，它必须至少支持[CommonMark 0.27](https://spec.commonmark.org/0.27/)描述的降价语法。工具可以选择忽略一些 CommonMark 特性来解决安全问题。
 
