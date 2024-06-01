@@ -26,7 +26,7 @@ $ sudo apt-get install nfs-common nfs-kernel-server
 
 ```shell
 $ service rpcbind start
-$ service rpcbind enable
+$ sudo systemctl enable rpcbind
 $ service nfs start
 $ service nfs enable
 $ service nfslock start
@@ -96,13 +96,13 @@ $ sudo mount -t nfs -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,
 
 1. 启用NFS客户端
 
-   控制面板 -> 启用或关闭Windows功能 -> 勾选全部“NFS服务”
+   控制面板 -> 启用或关闭Windows功能 -> 勾选全部“NFS服务/NFS客户端”
 
 2. 挂载
 
    1. [推荐]通过快捷方式挂载（方式一）
 
-      “鼠标右键->新建快捷方式“，填入NFS服务器地址以及挂载路径即可`\\192.168.122.1\data\nfs-data\vm-win10`
+      “鼠标右键->新建快捷方式“，填入NFS服务器地址以及挂载路径即可`\\192.168.122.1\home\laeni\Desktop\vm-share`
 
    2. 通过图形化界面挂载（方式二）
 
@@ -113,7 +113,7 @@ $ sudo mount -t nfs -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,
       以管理员身份启动`cmd.exxe`进行挂载。此方式本质上和一是一样的。
 
       ```
-      mklink /d C:\Users\xx\Desktop\NFS \\192.168.122.1\data\nfs-data\vm-win10
+      mklink /d C:\Users\xx\Desktop\NFS \\192.168.122.1\home\laeni\Desktop\vm-share
       ```
 
 > 1. Windows挂载后可能没有权限写入，如果没有权限，首先要检查NFS服务器文件权限设置，需要将挂载文件夹设置为`777`或者设置为`nogroup`用户组和`nobody`用户（Ubuntu测试，设置为`777`后随笔通过Windows写入文件之后查看用户信息即可得到）。

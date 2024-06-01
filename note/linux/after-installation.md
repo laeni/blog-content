@@ -12,7 +12,45 @@
 
 ## 安装后操作
 
-1. 启用 GENOME 原生远程桌面
+1. 重新安装`Vim`
+
+    ```sh
+    sudo apt remove vim-common
+    sudo apt install vim
+    ```
+
+    > Ubuntu预装的是vim tiny版本，可能会导致键盘操作与预期不同，通过安装vim full版本，可以在不切换兼容模式的情况下正常使用键盘。
+
+2. wireguard
+
+   ```sh
+   $ sudo apt install wireguard # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
+   $ scp tx:/mnt/share/node/ubuntu/system/etc/wireguard/wg0.conf .
+   $ sudo mv wg0.conf /etc/wireguard
+   $ sudo systemctl enable wg-quick@wg0 --now
+   ```
+
+3. 挂载NFS
+
+   ```sh
+   $ sudo apt-get install nfs-common nfs-kernel-server # 如果挂载失败，则至少要安装 nfs-common
+   $ scp tx:/mnt/share/archive/system/linux/usr/lib/systemd/system/auto_mount_nfs.service .
+   $ sudo mv auto_mount_nfs.service /etc/systemd/system/
+   $ sudo systemctl enable auto_mount_nfs.service --now
+   ```
+
+4. NFS 相关权限设置
+
+   由于需要在不同系统（Mac和Linux）上挂载相同的 NFS 目录，所以如果不进行设置会出现 Mac 上创建的文件无法在 Linux 上修改，Linux 创建的 Mac 也无法修改，所以需要将 Linux 用户添加到 Mac 用户所属的组。
+
+   ```sh
+   $ umask 0002 # Ubuntu 默认是该值，如果不是建议设置为该值
+   $ usermod -aG dialout $(whoami) # 组名不一定是 dialout，只要是组 ID 为 501 即可
+   ```
+
+   > Mac 中用户组的组ID为`501`，而 Ubuntu 中，ID 为`501`的用户组为`dialout`，所以直接将当前用户附加到改组即可，如果不存在则创建一个 ID 为 `501` 的组来使用即可。
+
+5. 启用 GENOME 原生远程桌面
 
    1. “设置 - 共享 - 远程桌面”中启用。
 
@@ -29,7 +67,7 @@
            meson install -C builddir
            ```
 
-         - 从软件包安装
+         - 从软件包安装 - Ubuntu-24.04
 
            ```sh
            sudo apt install gnome-browser-connector
@@ -41,38 +79,10 @@
 
       > 推荐使用上述的`gnome-browser-connector`方式，除了上述方式还可以直接安装本地可视化工具`gnome-shell-extension-manager`（`sudo apt install gnome-shell-extension-manager`），但是使用`gnome-shell-extension-manager`可能无法搜索到需要的软件包（在网页上可以搜索到）。
 
-2. Startup Disk Creator
+   3. 必要时开启自动登录
 
-   由于是最小安装，所以“启动盘创建器”工具不会安装，可以在应用商店搜索“Startup Disk Creator”安装即可。
-
-3. wireguard
-
-   ```sh
-   $ sudo apt install wireguard resolvconf # 如果不存在 resolvconf 可以先安装它 sudo apt install resolvconf
-   $ scp tx:/mnt/share/node/ubuntu/system/etc/wireguard/wg0.conf .
-   $ sudo mv wg0.conf /etc/wireguard
-   $ systemctl enable wg-quick@wg0 --now
-   ```
-
-4. 挂载NFS
-
-   ```sh
-   $ sudo apt-get install nfs-common nfs-kernel-server # 如果挂载失败，则至少要安装 nfs-common
-   $ scp tx:/mnt/share/archive/system/linux/etc/systemd/system/auto_mount_nfs.service .
-   $ sudo mv auto_mount_nfs.service /etc/systemd/system/
-   $ sudo systemctl enable auto_mount_nfs.service --now
-   ```
-
-5. NFS 相关权限设置
-
-   由于需要在不同系统（Mac和Linux）上挂载相同的 NFS 目录，所以如果不进行设置会出现 Mac 上创建的文件无法在 Linux 上修改，Linux 创建的 Mac 也无法修改，所以需要将 Linux 用户添加到 Mac 用户所属的组。
-
-   ```sh
-   $ umask 0002 # Ubuntu 默认是该值，如果不是建议设置为该值
-   $ usermod -aG dialout $(whoami) # 组名不一定是 dialout，只要是组 ID 为 501 即可
-   ```
-
-   > Mac 中用户组的组ID为`501`，而 Ubuntu 中，ID 为`501`的用户组为`dialout`，所以直接将当前用户附加到改组即可，如果不存在则创建一个 ID 为 `501` 的组来使用即可。
+      1. 设置中开启自动登录。
+      2. 通过`seahorse`命令打开**密码和密钥**，将**登录**的解锁密码设置为空（在**登录**上右键即可设置）。
 
 6. 信任自签名证书
 
@@ -96,7 +106,12 @@
    $ sudo apt-get install openssh-server
    ```
 
-8. flameshot（火焰截图）
+8. Snipaste（截图）
+
+   ```shell
+   # 可能需要安装 libfuse2 库
+   sudo apt install libfuse2
+   ```
 
    应用商店(snap)
 
@@ -106,25 +121,25 @@
 
 10. qqmusic
 
-   1. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
+       11. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
 
-      ```shell
-      $ sudo apt install libfuse2
-      ```
+            ```shell
+            $ sudo apt install libfuse2
+            ```
 
-   2. [官网](https://y.qq.com/download/download.html)下载`.AppImage`版本
+       12. [官网](https://y.qq.com/download/download.html)下载`.AppImage`版本
 
-   3. 制作启动脚本
+       13. 制作启动脚本
 
-      ```shell
-      # 部分电脑（如华为）需要禁用才能启动
-      $ echo './qqmusic-1.1.4.AppImage --disable-gpu-sandbox --no-sandbox' > qqmusic.sh
-      ```
+            ```shell
+            # 部分电脑（如华为）需要禁用才能启动
+            $ echo './qqmusic-1.1.4.AppImage --disable-gpu-sandbox --no-sandbox' > qqmusic.sh
+            ```
 
-   4. 如果安装deb版本，安装完成后需要修改启动脚本`/usr/share/applications/qqmusic.desktop`
+       14. 如果安装deb版本，安装完成后需要修改启动脚本`/usr/share/applications/qqmusic.desktop`
 
-      修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
-      修改后可能需要重启才生效
+            修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
+            修改后可能需要重启才生效
 
 11. dbeawer-ce
 
@@ -194,18 +209,7 @@
 
 17. 状态栏显示网速
 
-    在Ubuntu22.04下暂不能通过`apt`安装，所以直接从源码安装：
-
-    ```sh
-    $ git clone https://github.com/fossfreedom/indicator-sysmonitor.git
-    $ cd indicator-sysmonitor
-    $ pip3 install psutil
-    $ sudo make install
-    $ cd .. && rm -rf indicator-sysmonitor
-    $ nohup indicator-sysmonitor &
-    ```
-
-    > 安装后，通过鼠标打开设置修改监控属性以及开机启动。
+    [GNOME 插件](https://extensions.gnome.org/extension/6682/astra-monitor/).
 
 18. 安装sz/rz
 
@@ -232,8 +236,6 @@
     $ sz local.file
     ```
 
-19. 重新安装`Vim`
-
 20. 解决普通用户无法使用`1024`以下端口，参考[原文](https://my.oschina.net/lenglingx/blog/5603925)。
 
     ```sh
@@ -247,7 +249,7 @@
 
 21. 解决合上盖子时自动休眠问题
 
-    将`2`文件中`HandleLidSwitch`和`HandleLidSwitchExternalPower`配置项值修改为`lock`或`ignore`，修改后重启生效。
+    将`/etc/systemd/logind.conf`文件中`HandleLidSwitch`和`HandleLidSwitchExternalPower`配置项值修改为`lock`或`ignore`，修改后重启生效。
 
     ```
     # 合上盖子时动作: suspend-暂停/休眠 ignore-无动作 lock-锁屏
@@ -319,4 +321,9 @@
 2. 应用商店无法打开
 
    如果挂载了`/home`目录，则可能是由于历史数据导致，删除`/home/username/snap/`目录即可。
+
+## 常用工具
+
+- Linux 启动盘制作工具 - `/opt/apps/.bin/AppImage/balenaEtcher-1.18.11-x64.AppImage`
+
 
