@@ -2,8 +2,8 @@
 title: NFS常用配置笔记
 tags: 'Linux, NFS'
 author: Laeni
-date: '2022-07-30'
-updated: '2022-07-30'
+date: 2022-07-30
+updated: 2024-06-02
 ---
 
 ## 服务端配置
@@ -30,7 +30,8 @@ $ sudo systemctl enable rpcbind
 $ service nfs start
 $ service nfs enable
 $ service nfslock start
-# 重新加载nfs配置（/etc/exports）
+# 重新加载 /etc/exports 配置
+$ exportfs -avr
 $ systemctl reload nfs
 # 显示目标服务器能挂载的目录
 $ showmount -e <目标服务器IP>
@@ -55,7 +56,15 @@ $ showmount -e <目标服务器IP>
 > no_root_squash      — 服务器允许远程系统以root特权存取该目录
 > no_subtree_check  — 关闭子树检查
 
-修改配置后可能需要重新加载相关服务
+修改配置后是热加载配置
+
+```bash
+$ exportfs -avr
+  -a exports all directory
+  -r reexports
+```
+
+必要时可能需要重启服务
 
 ```shell
 $ sudo service nfs-server restart # 或 sudo service nfs-kernel-server restart

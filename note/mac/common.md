@@ -53,8 +53,6 @@ sudo killall -HUP mDNSResponder
   find . -type f -name "*.xml" -exec grep -H "hello world" {} +
   ```
 
-  >解释：
-  >
   >- `find .` ：在当前目录开始搜索。
   >- `-type f` ：只搜索文件。
   >- `-name "*.xml"` ：只搜索以 `.xml` 结尾的文件。
@@ -63,3 +61,28 @@ sudo killall -HUP mDNSResponder
   >- `+` ：表示将尽可能多的文件名传递给 `grep` 命令，以提高效率。
   >
   >这样，就可以在所有以 `.xml` 结尾的文件中搜索字符串 "hello world"，并显示包含匹配的文件的名称和匹配的内容。
+  
+- 给所有子目录增加执行权限
+
+  ```sh
+  find . -type d -exec chmod a+x {} +
+  ```
+
+  >- find . 从当前目录开始查找。
+  >- -type d 指定只查找目录（directory）。
+  >- -exec chmod +x {} + 对每个找到的目录执行chmod +x命令，其中{}会被替换为找到的目录路径，+则告诉find命令把找到的所有目录作为单个命令行参数传递给chmod，以提高效率。
+
+## 测试 UDP 或 TCP 端口是否正常监听
+
+UDP
+
+```sh
+nc -uzv <host> <port>
+```
+
+TCP
+
+```sh
+nc -tzv <host> <port>
+```
+

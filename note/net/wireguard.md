@@ -3,7 +3,7 @@ title: WireGuard 的简单使用
 author: 'Laeni'
 tags: VPN
 date: '2022-12-06'
-updated: '2023-02-17'
+updated: '2024-06-01'
 ---
 
 关于*WireGuard*的详细介绍可参见官方[WireGuard官网](https://www.wireguard.com/)或查看[另一篇博文](/share/20221208)。
@@ -112,6 +112,36 @@ $ wg syncconf wg0 <(wg-quick strip wg0)
 ```
 
 > 有时候会不生效，如果不生效就只能重启了。
+
+# 故障诊断
+
+## 检查网络是否畅通
+
+```sh
+nc -uzv xxx.xxx.xxx.xxx 51820
+```
+
+## 通过抓包调试 Iptables 规则
+
+使用 tcpdump 来查看或者捕获 ICMP 协议的数据包，比如 ping 请求和回应，可以使用以下命令：
+
+```sh
+tcpdump -i any icmp
+```
+
+只看 ping 请求：
+
+```sh
+tcpdump -i any icmp and 'icmp[0] == 8'
+```
+
+只看 ping 回应：
+
+```sh
+tcpdump -i any icmp and 'icmp[0] == 0'
+```
+
+> 在这些命令中，-i any 表示在所有网络接口上监听（可以将 any 换为指定网络接口），icmp 是 tcpdump 的过滤表达式，用来过滤 ICMP 数据包，icmp[0] == 8 表示只显示 ICMP 请求（type 为 8），icmp[0] == 0 表示只显示 ICMP 回应（type 为 0）。
 
 # 参考文档
 
