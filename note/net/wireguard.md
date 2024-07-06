@@ -111,7 +111,7 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACC
 $ wg syncconf wg0 <(wg-quick strip wg0)
 ```
 
-> 有时候会不生效，如果不生效就只能重启了。
+> 有时候会不生效，如果不生效就只能重启。
 
 # 故障诊断
 

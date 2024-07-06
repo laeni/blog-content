@@ -4,13 +4,49 @@
 
 ## 安装
 
+### 22.04
+
 1. 选择最小安装。否则会安装很多不需要的东西，特别是游戏，还无法卸载。
 
 2. 安装其他软件：不安装图形或无线硬件
 
 3. 联网后再安装。这样安装时会下载语言和自带的输入法等，否则输入法问题很麻烦。
 
+### 24.04
+
+1. 预装应用：默认集合。
+
+2. 专用软件：
+
+   - [x] 为图形和 Wi-Fi 安装第三方软件
+
+     安装完成后，如果无法使用远程桌面，可以切换显卡驱动试试（目前华为笔记本使用 nvidia-535 无法使用远程桌面。切换为 nvidia-470 则可以正常使用）
+
+   - [ ] 下载并安装对其他媒体格式的支持（需要联网才可以勾选，不过一般也不用勾选）
+
 ## 安装后操作
+
+### 系统配置
+
+1. Ibus 拼音输入法配置
+
+   - 【首选项】-【拼音模式】-【云输入选项】
+
+     - [x] 启用云输入
+     
+     云输入源: 百度
+     
+   - 【首选项】-【快捷键】
+
+     删除"切换繁体/简体中文模式"快捷键（该快捷键不常用，并且会导致其他软件无法使用对应快捷键）
+
+2. 启用用户命名空间
+
+   ```sh
+   echo 'kernel.unprivileged_userns_clone=1' | sudo tee /etc/sysctl.d/userns.conf
+   ```
+
+### 软件安装
 
 1. 重新安装`Vim`
 
@@ -209,6 +245,8 @@
 
 17. 状态栏显示网速
 
+    精简版: https://extensions.gnome.org/extension/6952/rezmon/
+
     [GNOME 插件](https://extensions.gnome.org/extension/6682/astra-monitor/).
 
 18. 安装sz/rz
@@ -236,7 +274,7 @@
     $ sz local.file
     ```
 
-20. 解决普通用户无法使用`1024`以下端口，参考[原文](https://my.oschina.net/lenglingx/blog/5603925)。
+19. 解决普通用户无法使用`1024`以下端口，参考[原文](https://my.oschina.net/lenglingx/blog/5603925)。
 
     ```sh
     #临时生效
@@ -247,7 +285,7 @@
     sysctl -p
     ```
 
-21. 解决合上盖子时自动休眠问题
+20. 解决合上盖子时自动休眠问题
 
     将`/etc/systemd/logind.conf`文件中`HandleLidSwitch`和`HandleLidSwitchExternalPower`配置项值修改为`lock`或`ignore`，修改后重启生效。
 
@@ -258,7 +296,7 @@
     HandleLidSwitchExternalPower=lock
     ```
 
-22. Data Integration（Kettle / Spoon）
+21. Data Integration（Kettle / Spoon）
 
     1. 安装
 
@@ -269,13 +307,13 @@
        curl -LO https://proxy.laeni.cn/pdi-ce-9.4.0.0-343.zip
        unzip pdi-ce-9.4.0.0-343.zip 
        ```
-    
+
     2. 解决 Unbuntu 打开报警告问题
-    
+
        参考[官网](https://community.hitachivantara.com/discussion/libwebkitgtk-10-0-on-ubuntu-2204-lts)做如下处理。
-    
+
        编辑`/etc/apt/sources.list`文件，添加：
-    
+
        ```
        # Add entry to repository that contains the old lib
        deb http://cz.archive.ubuntu.com/ubuntu bionic main universe 
@@ -283,9 +321,9 @@
        # Alternative link if upper does not work
        deb http://mirrors.kernel.org/ubuntu bionic main universe
        ```
-    
+
        然后安装包：
-    
+
        ```
        sudo apt-get update
        # 直接 update 会报证书相关的错，需要信任错误中给出的证书
@@ -294,9 +332,9 @@
        sudo apt-get install libwebkitgtk-1.0-0
        sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
        ```
-    
+
     3. 制作启动图标
-    
+
        ```sh
        cat <<EOF | sudo tee ~/Workspace/.Applicathon/data-integration/data-integration.desktop
        [Desktop Entry]
@@ -312,6 +350,31 @@
        sudo ln -s ~/Workspace/.Applicathon/data-integration/data-integration.desktop /usr/local/share/applications/
        ```
 
+22. Remmina
+
+    使用 Snap 安装后需要另外授权:
+
+    ```sh
+    sudo snap connect remmina:audio-record :audio-record
+    sudo snap connect remmina:avahi-observe :avahi-observe
+    sudo snap connect remmina:cups-control :cups-control
+    sudo snap connect remmina:mount-observe :mount-observe
+    sudo snap connect remmina:password-manager-service :password-manager-service
+    sudo snap connect remmina:ssh-keys :ssh-keys
+    sudo snap connect remmina:ssh-public-keys :ssh-public-keys
+    ```
+
+    > 以上命令为 Remmina 首次打开时的提示。
+
+23. Konsole
+
+    ```sh
+    sudo apt install konsole
+    sudo update-alternatives --config x-terminal-emulator # 修改默认终端（默认文件管理器不生效）
+    ```
+
+    > 能同时向多个会话输入内容。
+
 ## Ubuntu下常见问题解决
 
 1. IDEA无法输入中文
@@ -325,5 +388,4 @@
 ## 常用工具
 
 - Linux 启动盘制作工具 - `/opt/apps/.bin/AppImage/balenaEtcher-1.18.11-x64.AppImage`
-
 

@@ -10,38 +10,25 @@ updated: '2022-10-16'
 
 ### Linux环境下安装
 
-Linux环境下最简单的就是通过该发行版的软件源进行安装安装，此外还有较为通用的通过软件包形式安装。
+#### Ubuntu
 
-#### 从镜像源安装
-
-##### 配置镜像源
-
-[配置阿里云镜像源](https://developer.aliyun.com/mirror/docker-ce)
-
-> 1. 可能无需配置即可安装，所以可以先跳过次步骤，除非需要安装指定版本。比如 Deepin 就不需要配置。
-> 2. 一般情况默认安装最新版即可,但是如果要配合k8s使用的话可以去[k8s更新日志](https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG)中查看官方已经验证的最新版本。
-
-##### 通过`yum`安装
-
-[官方文档](https://docs.docker.com/install/linux/docker-ce/centos/)
-
-参考命令
+参考官网文档: https://docs.docker.com/engine/install/ubuntu/
 
 ```sh
-# 查看Docker可用版本
-$ sudo yum list docker-ce.x86_64 --showduplicates | sort -r
+# 添加源
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-$ sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-$ sudo yum-config-manager --enable docker-ce-edge
-$ sudo yum install docker-ce -y
-```
+# 安装
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-##### 通过`apt`安装
-
-参考命令
-
-```sh
-$ sudo apt install docker-ce
+# 使当前用户可以直接使用 docker 命令（需要重新登录会话）
+sudo usermod -aG docker $USER
 ```
 
 ##### 常见问题
