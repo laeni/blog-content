@@ -50,6 +50,35 @@ sudo usermod -aG docker $USER
 
 进入[某版本的软件包下载页面](https://download.docker.com/linux/debian/dists/buster/pool/stable/amd64/)，下载`containerd.io_xxx_amd64.deb`、`docker-ce-cli_xxx_debian-buster_amd64.deb`和`docker-ce_xxx~debian-buster_amd64.deb`三个包依次安装即可。
 
+#### 阿里云服务器安装
+
+官方文档: <https://help.aliyun.com/zh/ecs/use-cases/install-and-use-docker-on-a-linux-ecs-instance>
+
+##### Ubuntu
+
+```sh
+# 更新软件包列表并安装所需依赖包
+sudo apt update
+sudo apt-get -y install ca-certificates curl
+
+# 创建/etc/apt/keyrings目录，并下载Docker的官方GPG密钥到该目录
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# 将Docker仓库添加到系统的软件源列表并更新软件包列表
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] http://mirrors.aliyun.com/docker-ce/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+
+# 安装Docker
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+```
+
+
+
 #### 卸载
 
 ```sh

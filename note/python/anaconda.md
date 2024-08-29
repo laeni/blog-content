@@ -47,10 +47,22 @@ $ conda create --name example
 
 > 还可以指定 Python 版本：`conda create --name NAME [python=x.x]`。
 
+删除环境:
+
+```sh
+$ conda env remove --name example
+```
+
 切换环境：
 
 ```sh
 $ conda activate example
+```
+
+取消激活当前环境：
+
+```sh
+$ conda deactivate
 ```
 
 ### 安装包
@@ -71,7 +83,7 @@ Jupyter Notebook 和 JupyterLab
 $ jupyter-lab
 ```
 
-商户命令会启动一个 Jupyter 服务，端口默认为 8888，如果端口被占用则会依次递增寻找一个未占用的端口，并将当前目录作为工作目录。
+上述命令会启动一个 Jupyter 服务，端口默认为 8888，如果端口被占用则会依次递增寻找一个未占用的端口，并将当前目录作为工作目录。
 
 # 足迹
 

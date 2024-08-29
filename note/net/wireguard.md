@@ -107,11 +107,9 @@ PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACC
 # 常用命令
 
 ```shell
-# 不中断活跃连接的情况下重新加载配置文件
+# 不中断活跃连接的情况下重新加载配置文件（使用 wg syncconf 大部分时候会不生效，这种情况下可以使用 wg set 命令）
 $ wg syncconf wg0 <(wg-quick strip wg0)
 ```
-
-> 有时候会不生效，如果不生效就只能重启。
 
 # 故障诊断
 
@@ -142,6 +140,16 @@ tcpdump -i any icmp and 'icmp[0] == 0'
 ```
 
 > 在这些命令中，-i any 表示在所有网络接口上监听（可以将 any 换为指定网络接口），icmp 是 tcpdump 的过滤表达式，用来过滤 ICMP 数据包，icmp[0] == 8 表示只显示 ICMP 请求（type 为 8），icmp[0] == 0 表示只显示 ICMP 回应（type 为 0）。
+
+# 包属性
+
+```yaml
+HTTP: tos 0x0, ttl 64, id 14795, offset 0, flags [DF], proto TCP (6), length 40
+DNS: tos 0x0, ttl 64, id 19690, offset 0, flags [DF], proto UDP (17), length 126
+WireGuard: tos 0x14, ttl 49, id 20141, offset 0, flags [none], proto UDP (17), length 176
+```
+
+
 
 # 参考文档
 

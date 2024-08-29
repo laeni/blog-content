@@ -35,6 +35,10 @@ $ exportfs -avr
 $ systemctl reload nfs
 # 显示目标服务器能挂载的目录
 $ showmount -e <目标服务器IP>
+
+# 执行以下命令，可提高同时发起的NFS请求数量
+sudo echo "options sunrpc tcp_slot_table_entries=128" >>  /etc/modprobe.d/sunrpc.conf 
+sudo echo "options sunrpc tcp_max_slot_table_entries=128" >>  /etc/modprobe.d/sunrpc.conf
 ```
 
 ### 暴露可挂载目录
