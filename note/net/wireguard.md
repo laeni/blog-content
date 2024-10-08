@@ -1,9 +1,9 @@
 ---
 title: WireGuard 的简单使用
 author: 'Laeni'
-tags: VPN
-date: '2022-12-06'
-updated: '2024-06-01'
+tags: VPN, WireGuard
+date: 2022-12-06
+updated: 2024-10-08
 ---
 
 关于*WireGuard*的详细介绍可参见官方[WireGuard官网](https://www.wireguard.com/)或查看[另一篇博文](/share/20221208)。
@@ -141,6 +141,53 @@ tcpdump -i any icmp and 'icmp[0] == 0'
 
 > 在这些命令中，-i any 表示在所有网络接口上监听（可以将 any 换为指定网络接口），icmp 是 tcpdump 的过滤表达式，用来过滤 ICMP 数据包，icmp[0] == 8 表示只显示 ICMP 请求（type 为 8），icmp[0] == 0 表示只显示 ICMP 回应（type 为 0）。
 
+# 罕见问题
+
+- 端口畅通，但实际访问却超时（如无法访问‘`https://ghcr.io/`）
+
+  问题表象为，单独 ping 或者 进行端口检测都是没问题的，但是当实际访问时总是出现超时的问题。
+
+  ```sh
+  # curl https://ghcr.io/ -v
+  * Host ghcr.io:443 was resolved.
+  * IPv6: (none)
+  * IPv4: 20.205.243.164
+  *   Trying 20.205.243.164:443...
+  * Connected to ghcr.io (20.205.243.164) port 443
+  * ALPN: curl offers h2,http/1.1
+  * TLSv1.3 (OUT), TLS handshake, Client hello (1):
+  *  CAfile: /etc/ssl/certs/ca-certificates.crt
+  *  CApath: /etc/ssl/certs
+  ......
+  ```
+
+  原因可能是网络接口的 MTU 值设置太大（超过实际设备支持的 MTU 值），导致较大的数据包被丢弃。如果没有指定，则该值是自动计算的，但是自动计算的可能也会有问题，所以可以尝试减小 MTU 值（通常建议设置在$1420$左右，如果还是不行可以再适当减小试试）。注意不能设置太小，否则会将包拆分得过小，从而加重网络负担。
+
+  查看 MTU 值设置：
+
+  ```sh
+  $ ip link show | grep mtu
+  ......
+  106: wg0: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 65456 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+  ```
+
+  >由结果可知，`wh0`接口的 MTU 值被设置为 65456。
+
+  修改 MTU 值：
+
+  1. 临时修改：
+
+     ```sh
+     $ ip link set mtu 1420 up dev wg0
+     ```
+
+  2. 配置在 wireguard 配置中：
+
+     ```toml
+     [Interface]
+     MTU = 1420
+     ```
+
 # 包属性
 
 ```yaml
@@ -148,8 +195,6 @@ HTTP: tos 0x0, ttl 64, id 14795, offset 0, flags [DF], proto TCP (6), length 40
 DNS: tos 0x0, ttl 64, id 19690, offset 0, flags [DF], proto UDP (17), length 126
 WireGuard: tos 0x14, ttl 49, id 20141, offset 0, flags [none], proto UDP (17), length 176
 ```
-
-
 
 # 参考文档
 

@@ -19,7 +19,7 @@ $ yum install -y nfs-utils rpcbind
 #### Ubuntu
 
 ```shell
-$ sudo apt-get install nfs-common nfs-kernel-server
+$ sudo apt install nfs-common nfs-kernel-server
 ```
 
 #### 常用命令
