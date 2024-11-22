@@ -32,7 +32,6 @@ $ service nfs enable
 $ service nfslock start
 # 重新加载 /etc/exports 配置
 $ exportfs -avr
-$ systemctl reload nfs
 # 显示目标服务器能挂载的目录
 $ showmount -e <目标服务器IP>
 

@@ -375,6 +375,17 @@
 
     > 能同时向多个会话输入内容。
 
+24. 忽略 Mac 临时文件
+
+    在`~/.zshrc`和`~/.bashrc`添加如下内容。
+
+    ```sh
+    # 忽略属性，防止 Mac 生成的压缩文件在Linux解压报警告（解压 Mac 生成的压缩文件时可以有效防止警告和产生大量无用的临时文件）
+    alias tar="tar --no-xattrs --exclude='.DS_Store' --exclude='._*'"
+    ```
+
+    
+
 ## Ubuntu下常见问题解决
 
 1. IDEA无法输入中文
