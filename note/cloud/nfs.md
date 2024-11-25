@@ -27,9 +27,6 @@ $ sudo apt install nfs-common nfs-kernel-server
 ```shell
 $ service rpcbind start
 $ sudo systemctl enable rpcbind
-$ service nfs start
-$ service nfs enable
-$ service nfslock start
 # 重新加载 /etc/exports 配置
 $ exportfs -avr
 # 显示目标服务器能挂载的目录
