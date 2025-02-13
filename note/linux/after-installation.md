@@ -155,27 +155,17 @@
 
    官方下载安装包进行安装
 
-10. qqmusic
+10. 关闭 IBus **Unicode 码位** 快捷键
 
-       11. 安装libfuse2，否则可能报`dlopen(): error loading libfuse.so.2`
+    此快捷键不仅几乎用不到，还会占用 IDEA 快速切换大小写的快捷键。
 
-            ```shell
-            $ sudo apt install libfuse2
-            ```
+    1. 使用命令打开 IBus 首选项。
 
-       12. [官网](https://y.qq.com/download/download.html)下载`.AppImage`版本
+       ```bash
+       $ ibus-setup
+       ```
 
-       13. 制作启动脚本
-
-            ```shell
-            # 部分电脑（如华为）需要禁用才能启动
-            $ echo './qqmusic-1.1.4.AppImage --disable-gpu-sandbox --no-sandbox' > qqmusic.sh
-            ```
-
-       14. 如果安装deb版本，安装完成后需要修改启动脚本`/usr/share/applications/qqmusic.desktop`
-
-            修改启动命令为`Exec=/opt/qqmusic/qqmusic --disable-gpu-sandbox %U`
-            修改后可能需要重启才生效
+    2.  在“表情符号”选项卡清空“Unicode 码位”快捷键。
 
 11. dbeawer-ce
 
@@ -384,7 +374,14 @@
     alias tar="tar --no-xattrs --exclude='.DS_Store' --exclude='._*'"
     ```
 
-    
+25. 允许 async-profiler 在没有权限的情况下收集信息.
+
+    ```sh
+    echo 'kernel.perf_event_paranoid=1 ' >> /etc/sysctl.d/99-async-profiler.conf
+    echo 'kernel.kptr_restrict=0'        >> /etc/sysctl.d/99-async-profiler.conf
+    ```
+
+    > IDEA 等工具有时候会用到，如果没有添加，则在使用过程中可能会提示添加。
 
 ## Ubuntu下常见问题解决
 
@@ -399,4 +396,93 @@
 ## 常用工具
 
 - Linux 启动盘制作工具 - `/opt/apps/.bin/AppImage/balenaEtcher-1.18.11-x64.AppImage`
+
+# 安装服务器 Linux 后常用操作 - proxy
+
+镜像: 应用镜像-Docker
+
+系统: Alibaba Cloud Linux
+
+## 数据迁移
+
+```yaml
+- /etc/wireguard/wg0.conf
+- /mnt/
+- /root/
+- /opt/html/
+- /data/docker/
+- /data/
+```
+
+## 软件安装
+
+1. Wireguard
+
+   1. 软件安装
+
+      ```bash
+      sudo apt install wireguard
+      ```
+
+   2. 配置准备
+
+      ```bash
+      ssh old
+      scp /etc/wireguard/wg0.conf p:/etc/wireguard/
+      ```
+
+   3. 开启流量转发
+
+      ```bash
+      # 将转发配置写入配置文件
+      echo 'net.ipv4.ip_forward = 1' >> /etc/sysctl.conf
+      echo 'net.ipv6.conf.all.forwarding = 1' >> /etc/sysctl.conf
+      echo 'net.ipv6.conf.default.forwarding = 1' >> /etc/sysctl.conf
+      # 使配置生效
+      sudo sysctl -p
+      ```
+
+      > 验证：
+      >
+      > ```bash
+      > cat /proc/sys/net/ipv4/ip_forward
+      > cat /proc/sys/net/ipv6/conf/all/forwarding
+      > ```
+      >
+      > 上述命令输出`1`即表示已开启转发。
+
+   4. 启动
+
+      ```bash
+      systemctl enable wg-quick@wg0
+      systemctl start wg-quick@wg0.service
+      ```
+
+3. Docker
+
+   参考官网[Docker Engine](https://docs.docker.com/engine/install/ubuntu/)。
+
+   1. 添加存储库
+
+      ```bash
+      # Add Docker's official GPG key:
+      sudo apt-get update
+      sudo apt-get install ca-certificates curl
+      sudo install -m 0755 -d /etc/apt/keyrings
+      sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+      sudo chmod a+r /etc/apt/keyrings/docker.asc
+      
+      # Add the repository to Apt sources:
+      echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+        $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      sudo apt-get update
+      ```
+
+   2. 安装
+
+      ```bash
+      apt -y install docker-ce
+      ```
 

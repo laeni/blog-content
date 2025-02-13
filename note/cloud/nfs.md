@@ -55,6 +55,8 @@ sudo echo "options sunrpc tcp_max_slot_table_entries=128" >>  /etc/modprobe.d/su
 > sync                          — 数据同步写入内存和硬盘
 > no_root_squash      — 服务器允许远程系统以root特权存取该目录
 > no_subtree_check  — 关闭子树检查
+> fsid=0                       — 该参数 表示 /srv/nfs4 是nfs4的根目录，指定之后子目录必须在后面
+> crossmnt                 — 这个参数是我们 可以使用 mount --bind 直接绑定目录的关键，他允许不同文件系统直接访问
 
 修改配置后是热加载配置
 
